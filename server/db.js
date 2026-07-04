@@ -4,19 +4,20 @@ import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "../data");
-const isProduction = process.env.NODE_ENV === 'production';
 
 let db;
 
-// Usar PostgreSQL em produção ou SQLite localmente
+// Usar PostgreSQL se DATABASE_URL existe, senão SQLite
 async function initializeDb() {
-  if (isProduction && process.env.DATABASE_URL) {
-    console.log('🗄️ Usando PostgreSQL (Production)');
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (databaseUrl) {
+    console.log('🗄️ Usando PostgreSQL (DATABASE_URL detectado)');
     try {
       const pgModule = await import('pg');
       const { Pool } = pgModule;
       const pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: databaseUrl,
       });
 
       db = {
@@ -38,15 +39,15 @@ async function initializeDb() {
         serialize: (fn) => fn(),
         pool,
       };
-      console.log('✅ PostgreSQL connected');
+      console.log('✅ PostgreSQL conectado com sucesso');
       initializeTables();
     } catch (err) {
-      console.error('❌ PostgreSQL connection failed:', err.message);
+      console.error('❌ Erro na conexão PostgreSQL:', err.message);
       process.exit(1);
     }
   } else {
     // Usar SQLite3 localmente
-    console.log('🗄️ Usando SQLite (Development)');
+    console.log('🗄️ Usando SQLite (DATABASE_URL não encontrado)');
     try {
       const sqlite3Module = await import('sqlite3');
       const sqlite3 = sqlite3Module.default;
@@ -55,10 +56,10 @@ async function initializeDb() {
       }
       const dbPath = process.env.DATABASE || path.join(dataDir, "mytokencost.db");
       db = new sqlite3.Database(dbPath);
-      console.log('✅ SQLite connected');
+      console.log('✅ SQLite conectado com sucesso');
       db.serialize(() => initializeTables());
     } catch (err) {
-      console.error('❌ SQLite connection failed:', err.message);
+      console.error('❌ Erro na conexão SQLite:', err.message);
       process.exit(1);
     }
   }
