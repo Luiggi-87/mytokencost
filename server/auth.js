@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
+import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { dbRun, dbGet } from "./db.js";
 
@@ -62,6 +63,42 @@ export const loginUser = async (email, password) => {
 
 export const getUserById = async (userId) => {
   return await dbGet("SELECT id, email, organization_name, created_at FROM users WHERE id = ?", [userId]);
+};
+
+// Gera um token de reset, salva o hash no banco e retorna o token bruto (para enviar por email)
+export const createPasswordResetToken = async (email) => {
+  const user = await dbGet("SELECT id FROM users WHERE email = ?", [email]);
+  if (!user) return null; // caller decide como responder (evitar enumeração de usuários)
+
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+  await dbRun(
+    "UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
+    [hashedToken, expiresAt.toISOString(), user.id]
+  );
+
+  return rawToken;
+};
+
+export const resetPasswordWithToken = async (rawToken, newPassword) => {
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  const user = await dbGet(
+    "SELECT id, reset_token_expires FROM users WHERE reset_token = ?",
+    [hashedToken]
+  );
+
+  if (!user || !user.reset_token_expires || new Date(user.reset_token_expires) < new Date()) {
+    throw new Error("Token inválido ou expirado");
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  await dbRun(
+    "UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?",
+    [passwordHash, user.id]
+  );
 };
 
 export const authMiddleware = (req, res, next) => {

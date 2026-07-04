@@ -146,32 +146,37 @@ async function actuallyInitializeDb() {
 
 // dbReady Promise defined above
 
-function initializeTables() {
+// Roda uma query e ignora erros (usado para ALTER TABLE de migração, que falha
+// silenciosamente se a coluna já existir)
+function runIgnoringErrors(sql) {
   return new Promise((resolve) => {
-    if (!db) {
-      console.log('✅ Tabelas não precisam ser criadas (DB não inicializado)');
-      resolve();
-      return;
-    }
-
-    console.log('🔄 Iniciando criação de tabelas...');
-
-    // Dispara todos os CREATE TABLE sem esperar respostas
-    // O PostgreSQL vai executá-los em background
-
-    db.run(`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, organization_name TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-    db.run(`CREATE TABLE IF NOT EXISTS apis (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, type TEXT NOT NULL, api_key TEXT, base_url TEXT, pricing_model TEXT, unit_cost NUMERIC(10,2), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
-    db.run(`CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, client_name TEXT, description TEXT, monthly_rate NUMERIC(10,2), stripe_customer_id TEXT, stripe_auto_charge BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
-    db.run(`CREATE TABLE IF NOT EXISTS costs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT NOT NULL, api_id TEXT NOT NULL, amount NUMERIC(10,2) NOT NULL, units INTEGER, unit_type TEXT, description TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (project_id) REFERENCES projects(id), FOREIGN KEY (api_id) REFERENCES apis(id))`);
-    db.run(`CREATE TABLE IF NOT EXISTS webhooks (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, url TEXT NOT NULL, event TEXT NOT NULL, active BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
-    db.run(`CREATE TABLE IF NOT EXISTS alerts (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT, type TEXT NOT NULL, threshold REAL, action TEXT, recipients TEXT, active BOOLEAN DEFAULT FALSE, triggered_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (project_id) REFERENCES projects(id))`);
-    db.run(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
-    db.run(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
-
-    // Resolve imediatamente após disparar as queries - elas vão ser executadas em background
-    console.log('✅ Queries de criação de tabelas disparadas, continuando...');
-    resolve();
+    db.run(sql, [], () => resolve());
   });
+}
+
+async function initializeTables() {
+  if (!db) {
+    console.log('✅ Tabelas não precisam ser criadas (DB não inicializado)');
+    return;
+  }
+
+  console.log('🔄 Iniciando criação de tabelas...');
+
+  // CREATE TABLE em sequência (a ordem importa: ALTER TABLE users depende de
+  // users já existir, e FKs dependem das tabelas referenciadas já existirem)
+  await dbRun(`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, organization_name TEXT, reset_token TEXT, reset_token_expires TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+  // Migração para bancos já existentes sem essas colunas
+  await runIgnoringErrors(`ALTER TABLE users ADD COLUMN reset_token TEXT`);
+  await runIgnoringErrors(`ALTER TABLE users ADD COLUMN reset_token_expires TIMESTAMP`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS apis (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, type TEXT NOT NULL, api_key TEXT, base_url TEXT, pricing_model TEXT, unit_cost NUMERIC(10,2), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, client_name TEXT, description TEXT, monthly_rate NUMERIC(10,2), stripe_customer_id TEXT, stripe_auto_charge BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS costs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT NOT NULL, api_id TEXT NOT NULL, amount NUMERIC(10,2) NOT NULL, units INTEGER, unit_type TEXT, description TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (project_id) REFERENCES projects(id), FOREIGN KEY (api_id) REFERENCES apis(id))`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS webhooks (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, url TEXT NOT NULL, event TEXT NOT NULL, active BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS alerts (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT, type TEXT NOT NULL, threshold REAL, action TEXT, recipients TEXT, active BOOLEAN DEFAULT FALSE, triggered_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (project_id) REFERENCES projects(id))`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+
+  console.log('🎉 Todas as tabelas foram criadas/verificadas com sucesso!');
 }
 
 // Helper functions to promisify db callbacks
