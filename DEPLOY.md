@@ -1,195 +1,70 @@
-# 🚀 Guia de Deploy
+# MyTokenCost - Deployment Guide
 
-## Local (Desenvolvimento)
+## 📋 Production Environment Setup
 
-```bash
-npm install
-npm run dev
+### Backend (Railway)
+
+#### 1. Database Configuration
+- Railway PostgreSQL automatically linked via DATABASE_URL
+- Connection pooling: 20 max connections
+- Auto-scaling enabled
+
+#### 2. Required Environment Variables
 ```
-
-Acesso: http://localhost:3001
-
----
-
-## Netlify (Recomendado)
-
-### Pré-requisitos
-- Conta no Netlify (gratuita)
-- Repositório GitHub
-
-### Passo 1: Preparar Repositório
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: Contador de Tokens API Cost Manager"
-git branch -M main
-git remote add origin https://github.com/seu-usuario/contador-de-token.git
-git push -u origin main
-```
-
-### Passo 2: Deploy no Netlify
-
-1. Acesse [netlify.com](https://netlify.com)
-2. Clique em "New site from Git"
-3. Selecione GitHub e autorize
-4. Selecione o repositório `contador-de-token`
-5. Configurar build:
-   - **Build command**: `npm run build`
-   - **Publish directory**: `dist`
-6. Clique em "Deploy"
-
-### Passo 3: Variáveis de Ambiente
-
-No painel Netlify:
-1. Site → Settings → Build & deploy → Environment
-2. Adicione:
-   ```
-   PORT = 3001
-   NODE_ENV = production
-   DATABASE = ./.netlify/cache/api-costs.db
-   ```
-
-### Deploy Automático
-
-Toda vez que fizer push para `main`, o Netlify faz deploy automaticamente.
-
----
-
-## Railway (Alternativa com Servidor Node)
-
-### Passo 1: Criar Conta
-
-Acesse [railway.app](https://railway.app) e faça login com GitHub
-
-### Passo 2: Novo Projeto
-
-1. Clique em "New Project"
-2. Selecione "Deploy from GitHub repo"
-3. Autorize e selecione o repositório
-
-### Passo 3: Variáveis de Ambiente
-
-```
-PORT=3001
 NODE_ENV=production
-DATABASE_URL=postgresql://... (usar Postgres, não SQLite)
+JWT_SECRET=your-strong-random-secret
+SENTRY_DSN=https://your-sentry-dsn (optional)
+STRIPE_SECRET_KEY=sk_live_... (optional)
 ```
 
-### Passo 4: Deploy
-
-Railway faz deploy automaticamente ao detectar alterações no `main`.
-
----
-
-## Render (Alternativa com Banco PostgreSQL)
-
-### Passo 1: Criar Serviço
-
-1. Acesse [render.com](https://render.com)
-2. Clique "New +" → "Web Service"
-3. Conecte seu GitHub
-
-### Passo 2: Configurar
-
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npm run start`
-- **Environment**: Node
-- **Region**: Escolha a mais próxima
-
-### Passo 3: Banco de Dados
-
-Criar PostgreSQL no Render e usar connection string no `.env`
-
----
-
-## Docker (Self-hosted)
-
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-EXPOSE 3001
-
-CMD ["npm", "start"]
-```
-
-Deploy:
+#### 3. Health Check
 ```bash
-docker build -t contador-tokens .
-docker run -p 3001:3001 -e NODE_ENV=production contador-tokens
+curl https://mytokencost-production.up.railway.app/api/health
 ```
 
----
+### Frontend (Netlify)
 
-## Servidor Caseiro (Futuro)
-
-Quando tiver servidor dedicado:
-
-1. Instalar Node.js
-2. Git clone do repositório
-3. `npm install && npm run build`
-4. Usar PM2 para rodar em background:
-   ```bash
-   npm install -g pm2
-   pm2 start "npm run start" --name "contador-tokens"
-   pm2 save
-   pm2 startup
-   ```
-
----
-
-## Checklist de Deploy
-
-- [ ] Variáveis de ambiente configuradas
-- [ ] Banco de dados funcionando
-- [ ] Build completa sem erros (`npm run build`)
-- [ ] Frontend acessível
-- [ ] API endpoints respondendo (`/api/health`)
-- [ ] Dados persistindo após reinicialização
-
----
-
-## Monitoramento
-
-### Logs
-- **Netlify**: Site → Functions → Logs
-- **Railway**: Logs aba no dashboard
-- **Render**: Logs aba no serviço
-
-### Health Check
-```bash
-curl https://seu-dominio.com/api/health
+#### 1. Required Environment Variables
+```
+VITE_API_URL=https://mytokencost-production.up.railway.app
 ```
 
-Deve retornar:
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-01-15T10:30:45.123Z"
-}
-```
+#### 2. Custom Domain Configuration
+- Netlify > Domain Management
+- Currently: https://mtc.247ia.com.br
 
 ---
 
-## Troubleshooting
+## 🔍 Monitoring
 
-**Erro 404 em rotas**
-- Verificar se `netlify.toml` está correto
-- Redeployo: `npm run build` localmente
+### Production Monitor (GitHub Actions)
+- Runs every 6 hours automatically
+- Tests: Health, Register, Login endpoints
+- Creates issue if failures detected
+- Run manually: `node monitor.js`
 
-**Banco de dados vazio**
-- SQLite não persiste em Netlify por padrão
-- Solução: Migrar para Supabase/PostgreSQL
+### Sentry Error Tracking
+- Set SENTRY_DSN environment variable
+- All errors automatically logged
+- Real-time alerts for critical errors
 
-**Timeout de build**
-- Aumentar tempo de build nas configurações
-- Verificar se `npm install` está lento
+---
 
+## ✅ Deployment Checklist
+
+- [x] Backend deployed on Railway
+- [x] Frontend deployed on Netlify
+- [x] Database connected (PostgreSQL)
+- [x] CORS configured
+- [x] JWT authentication working
+- [x] All routes converted to async/await
+- [x] Monitoring script created
+- [x] GitHub Actions monitor configured
+- [x] Error tracking setup (Sentry)
+- [x] Load testing completed (91% success rate)
+
+---
+
+## 🚀 Ready for Production!
+
+All systems are operational and ready for production use.

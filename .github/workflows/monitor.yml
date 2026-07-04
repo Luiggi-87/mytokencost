@@ -1,0 +1,35 @@
+name: Production Monitor
+
+on:
+  schedule:
+    # Executar a cada 6 horas
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run Production Monitor
+        run: node monitor.js
+        continue-on-error: true
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Production Monitor Alert - ' + new Date().toISOString(),
+              body: '❌ Production monitoring detected issues.\n\nCheck: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })

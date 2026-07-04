@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import db from './db.js';
+import { initSentry, captureException } from './sentry.js';
 import setupWebSocket, { emitToUser } from './websocket.js';
 import { dbReady } from './db.js';
 import authRoutes from './routes/auth.js';
@@ -18,6 +19,9 @@ import alertRoutes from './routes/alerts.js';
 import reportRoutes from './routes/reports.js';
 
 dotenv.config();
+
+// Initialize Sentry for error tracking
+initSentry();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();

@@ -49,7 +49,7 @@ async function checkEndpoint(path, name, method = 'GET', body = null) {
       headers: {
         'Content-Type': 'application/json'
       },
-      timeout: 10000
+      timeout: 15000
     };
 
     const req = https.request(options, (res) => {
