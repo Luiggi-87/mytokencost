@@ -50,20 +50,30 @@ export const registerUser = (email, password, organizationName) => {
 };
 
 export const loginUser = (email, password) => {
+  console.log('🔐 loginUser chamado para:', email);
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      console.warn('⚠️ Login timeout - callback não respondeu em 5s');
+      console.warn('⚠️ Login timeout - callback não respondeu em 30s');
       reject(new Error("Timeout ao acessar banco de dados"));
     }, 30000);
 
+    console.log('🔍 Chamando db.get()...');
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
+      console.log('✓ Callback de db.get() foi chamado. err:', err?.message, 'user:', !!user);
       clearTimeout(timeout);
-      if (err) reject(err);
-      else if (!user) reject(new Error("Usuário não encontrado"));
-      else {
+      if (err) {
+        console.error('❌ Erro no GET:', err.message);
+        reject(err);
+      } else if (!user) {
+        console.warn('⚠️ Usuário não encontrado:', email);
+        reject(new Error("Usuário não encontrado"));
+      } else {
         const valid = await comparePassword(password, user.password_hash);
-        if (!valid) reject(new Error("Senha incorreta"));
-        else {
+        if (!valid) {
+          console.warn('⚠️ Senha incorreta para:', email);
+          reject(new Error("Senha incorreta"));
+        } else {
+          console.log('✅ Login bem-sucedido para:', email);
           const token = generateToken(user.id);
           resolve({ user: { id: user.id, email: user.email, organization: user.organization_name }, token });
         }
