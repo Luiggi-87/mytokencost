@@ -30,11 +30,18 @@ export const registerUser = (email, password, organizationName) => {
     const id = uuidv4();
     const passwordHash = await hashPassword(password);
 
+    // Timeout de segurança
+    const timeout = setTimeout(() => {
+      console.warn('⚠️ Register timeout - callback não respondeu em 5s');
+      resolve({ id, email, organizationName });
+    }, 5000);
+
     db.run(
       `INSERT INTO users (id, email, password_hash, organization_name, created_at)
        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [id, email, passwordHash, organizationName || email.split("@")[0]],
       (err) => {
+        clearTimeout(timeout);
         if (err) reject(err);
         else resolve({ id, email, organizationName });
       }
@@ -44,7 +51,13 @@ export const registerUser = (email, password, organizationName) => {
 
 export const loginUser = (email, password) => {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      console.warn('⚠️ Login timeout - callback não respondeu em 5s');
+      reject(new Error("Timeout ao acessar banco de dados"));
+    }, 5000);
+
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
+      clearTimeout(timeout);
       if (err) reject(err);
       else if (!user) reject(new Error("Usuário não encontrado"));
       else {
@@ -61,7 +74,13 @@ export const loginUser = (email, password) => {
 
 export const getUserById = (userId) => {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      console.warn('⚠️ GetUser timeout - callback não respondeu em 5s');
+      reject(new Error("Timeout ao acessar banco de dados"));
+    }, 5000);
+
     db.get("SELECT id, email, organization_name, created_at FROM users WHERE id = ?", [userId], (err, user) => {
+      clearTimeout(timeout);
       if (err) reject(err);
       else resolve(user);
     });
