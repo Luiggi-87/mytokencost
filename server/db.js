@@ -166,5 +166,17 @@ function initializeTables() {
   });
 }
 
-export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn(), pool: null };
+// Create a proxy that always returns the current db instance
+export default new Proxy({}, {
+  get: (target, prop) => {
+    if (db && db[prop]) return db[prop];
+    if (prop === 'run') return () => {};
+    if (prop === 'all') return () => {};
+    if (prop === 'get') return () => {};
+    if (prop === 'serialize') return (fn) => fn();
+    if (prop === 'pool') return db?.pool;
+    return undefined;
+  }
+});
+
 export { dbReady };
