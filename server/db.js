@@ -43,7 +43,9 @@ async function initializeDb() {
       db = {
         run: (sql, params = [], callback) => {
           const convertedSql = convertQuery(sql);
+          console.log('🔍 DB RUN:', convertedSql.substring(0, 50) + '...');
           pool.query(convertedSql, params, (err, result) => {
+            if (err) console.error('❌ DB ERROR:', err.message);
             if (callback) callback(err, result);
           });
         },
