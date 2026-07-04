@@ -25,76 +25,62 @@ export const verifyToken = (token) => {
   }
 };
 
-export const registerUser = (email, password, organizationName) => {
-  return new Promise(async (resolve, reject) => {
+export const registerUser = async (email, password, organizationName) => {
+  try {
     const id = uuidv4();
     const passwordHash = await hashPassword(password);
 
-    // Timeout de segurança
-    const timeout = setTimeout(() => {
-      console.warn('⚠️ Register timeout - callback não respondeu em 5s');
-      resolve({ id, email, organizationName });
-    }, 30000);
-
-    db.run(
+    console.log('📝 Registrando usuário:', email);
+    await db.pool.query(
       `INSERT INTO users (id, email, password_hash, organization_name, created_at)
-       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-      [id, email, passwordHash, organizationName || email.split("@")[0]],
-      (err) => {
-        clearTimeout(timeout);
-        if (err) reject(err);
-        else resolve({ id, email, organizationName });
-      }
+       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
+      [id, email, passwordHash, organizationName || email.split("@")[0]]
     );
-  });
+
+    console.log('✅ Usuário registrado:', email);
+    return { id, email, organizationName };
+  } catch (err) {
+    console.error('❌ Erro no registro:', err.message);
+    throw err;
+  }
 };
 
-export const loginUser = (email, password) => {
+export const loginUser = async (email, password) => {
   console.log('🔐 loginUser chamado para:', email);
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      console.warn('⚠️ Login timeout - callback não respondeu em 30s');
-      reject(new Error("Timeout ao acessar banco de dados"));
-    }, 30000);
+  try {
+    console.log('🔍 Consultando usuário...');
+    // Use the raw pool for direct async/await
+    const result = await db.pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const user = result.rows?.[0];
 
-    console.log('🔍 Chamando db.get()...');
-    db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
-      console.log('✓ Callback de db.get() foi chamado. err:', err?.message, 'user:', !!user);
-      clearTimeout(timeout);
-      if (err) {
-        console.error('❌ Erro no GET:', err.message);
-        reject(err);
-      } else if (!user) {
-        console.warn('⚠️ Usuário não encontrado:', email);
-        reject(new Error("Usuário não encontrado"));
-      } else {
-        const valid = await comparePassword(password, user.password_hash);
-        if (!valid) {
-          console.warn('⚠️ Senha incorreta para:', email);
-          reject(new Error("Senha incorreta"));
-        } else {
-          console.log('✅ Login bem-sucedido para:', email);
-          const token = generateToken(user.id);
-          resolve({ user: { id: user.id, email: user.email, organization: user.organization_name }, token });
-        }
-      }
-    });
-  });
+    console.log('✓ Query executada. User encontrado:', !!user);
+
+    if (!user) {
+      throw new Error("Usuário não encontrado");
+    }
+
+    const valid = await comparePassword(password, user.password_hash);
+    if (!valid) {
+      throw new Error("Senha incorreta");
+    }
+
+    console.log('✅ Login bem-sucedido para:', email);
+    const token = generateToken(user.id);
+    return { user: { id: user.id, email: user.email, organization: user.organization_name }, token };
+  } catch (err) {
+    console.error('❌ Erro no login:', err.message);
+    throw err;
+  }
 };
 
-export const getUserById = (userId) => {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      console.warn('⚠️ GetUser timeout - callback não respondeu em 5s');
-      reject(new Error("Timeout ao acessar banco de dados"));
-    }, 30000);
-
-    db.get("SELECT id, email, organization_name, created_at FROM users WHERE id = ?", [userId], (err, user) => {
-      clearTimeout(timeout);
-      if (err) reject(err);
-      else resolve(user);
-    });
-  });
+export const getUserById = async (userId) => {
+  try {
+    const result = await db.pool.query("SELECT id, email, organization_name, created_at FROM users WHERE id = $1", [userId]);
+    return result.rows?.[0];
+  } catch (err) {
+    console.error('❌ Erro ao buscar usuário:', err.message);
+    throw err;
+  }
 };
 
 export const authMiddleware = (req, res, next) => {
