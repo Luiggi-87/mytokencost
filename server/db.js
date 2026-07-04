@@ -6,9 +6,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "../data");
 
 let db;
+let dbReady = new Promise((resolve, reject) => {
+  (async () => {
+    try {
+      await actuallyInitializeDb();
+      resolve(db);
+    } catch (err) {
+      reject(err);
+    }
+  })();
+});
 
 // Usar PostgreSQL se DATABASE_URL existe, senão construir de variáveis Railway, senão SQLite
-async function initializeDb() {
+async function actuallyInitializeDb() {
   let databaseUrl = process.env.DATABASE_URL;
 
   // Se não houver DATABASE_URL, tentar construir de variáveis individuais (Railway)
@@ -97,8 +107,7 @@ async function initializeDb() {
   }
 }
 
-// Initialize immediately
-initializeDb();
+// dbReady Promise defined above
 
 function initializeTables() {
   if (!db) return;
@@ -213,3 +222,4 @@ function initializeTables() {
 }
 
 export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn() };
+export { dbReady };

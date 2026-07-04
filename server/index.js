@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import db from './db.js';
 import setupWebSocket, { emitToUser } from './websocket.js';
+import { dbReady } from './db.js';
 import authRoutes from './routes/auth.js';
 import apiRoutes from './routes/apis.js';
 import projectRoutes from './routes/projects.js';
@@ -65,12 +66,18 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-server.listen(PORT, () => {
-  console.log(`\n🚀 MyTokenCost Server Running`);
-  console.log(`📊 Dashboard: http://localhost:${PORT}`);
-  console.log(`🔐 Auth: /api/auth/login`);
-  console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
-  console.log(`📧 Webhooks: /api/webhooks`);
-  console.log(`🚨 Alerts: /api/alerts`);
-  console.log(`📊 Reports: /api/reports\n`);
+// Wait for db before listening
+dbReady.then(() => {
+  server.listen(PORT, () => {
+    console.log(`\n🚀 MyTokenCost Server Running`);
+    console.log(`📊 Dashboard: http://localhost:${PORT}`);
+    console.log(`🔐 Auth: /api/auth/login`);
+    console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
+    console.log(`📧 Webhooks: /api/webhooks`);
+    console.log(`🚨 Alerts: /api/alerts`);
+    console.log(`📊 Reports: /api/reports\n`);
+  });
+}).catch(err => {
+  console.error('❌ Failed to initialize database:', err);
+  process.exit(1);
 });
