@@ -166,5 +166,5 @@ function initializeTables() {
   });
 }
 
-export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn() };
+export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn(), pool: null };
 export { dbReady };
