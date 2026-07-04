@@ -1,0 +1,16 @@
+{
+  "name": "@contador-tokens/gemini-proxy",
+  "version": "1.0.0",
+  "description": "Google Gemini SDK wrapper that automatically tracks API costs",
+  "main": "index.js",
+  "type": "module",
+  "keywords": [
+    "google",
+    "gemini",
+    "cost-tracking",
+    "billing"
+  ],
+  "dependencies": {
+    "@google/generative-ai": "^0.1.0"
+  }
+}

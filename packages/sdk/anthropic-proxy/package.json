@@ -1,0 +1,25 @@
+{
+  "name": "@contador-tokens/anthropic-proxy",
+  "version": "1.0.0",
+  "description": "Anthropic Claude SDK wrapper that automatically tracks API costs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "anthropic",
+    "claude",
+    "cost-tracking",
+    "billing",
+    "api-proxy"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.16.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

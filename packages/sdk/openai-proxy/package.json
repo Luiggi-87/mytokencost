@@ -1,0 +1,16 @@
+{
+  "name": "@contador-tokens/openai-proxy",
+  "version": "1.0.0",
+  "description": "OpenAI SDK wrapper that automatically tracks API costs",
+  "main": "index.js",
+  "type": "module",
+  "keywords": [
+    "openai",
+    "gpt",
+    "cost-tracking",
+    "billing"
+  ],
+  "dependencies": {
+    "openai": "^4.0.0"
+  }
+}

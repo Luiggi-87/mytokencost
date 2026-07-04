@@ -1,0 +1,115 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 12px rgba(99, 102, 241, 0.2);
+}
+
+.card h3 {
+  margin-bottom: 1rem;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.card-total {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border: none;
+}
+
+.card-total h3 {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--primary);
+}
+
+.api-name, .project-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.api-value, .project-value {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.project-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.project-client {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1rem;
+}
+
+.btn-refresh {
+  align-self: flex-end;
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.btn-refresh:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .amount {
+    font-size: 2rem;
+  }
+}
