@@ -7,9 +7,23 @@ const dataDir = path.join(__dirname, "../data");
 
 let db;
 
-// Usar PostgreSQL se DATABASE_URL existe, senão SQLite
+// Usar PostgreSQL se DATABASE_URL existe, senão construir de variáveis Railway, senão SQLite
 async function initializeDb() {
-  const databaseUrl = process.env.DATABASE_URL;
+  let databaseUrl = process.env.DATABASE_URL;
+
+  // Se não houver DATABASE_URL, tentar construir de variáveis individuais (Railway)
+  if (!databaseUrl && process.env.PGHOST) {
+    const host = process.env.PGHOST;
+    const user = process.env.POSTGRES_USER;
+    const password = process.env.POSTGRES_PASSWORD;
+    const db = process.env.POSTGRES_DB;
+    const port = process.env.PGPORT || 5432;
+
+    if (user && password && db) {
+      databaseUrl = `postgresql://${user}:${password}@${host}:${port}/${db}`;
+      console.log('🗄️ DATABASE_URL construído de variáveis Railway');
+    }
+  }
 
   if (databaseUrl) {
     console.log('🗄️ Usando PostgreSQL (DATABASE_URL detectado)');
