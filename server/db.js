@@ -82,7 +82,7 @@ async function actuallyInitializeDb() {
         pool,
       };
       console.log('✅ PostgreSQL conectado com sucesso');
-      initializeTables();
+      return await initializeTables();
     } catch (err) {
       console.error('❌ Erro na conexão PostgreSQL:', err.message);
       process.exit(1);
@@ -99,7 +99,7 @@ async function actuallyInitializeDb() {
       const dbPath = process.env.DATABASE || path.join(dataDir, "mytokencost.db");
       db = new sqlite3.Database(dbPath);
       console.log('✅ SQLite conectado com sucesso');
-      db.serialize(() => initializeTables());
+      return await initializeTables();
     } catch (err) {
       console.error('❌ Erro na conexão SQLite:', err.message);
       process.exit(1);
@@ -110,7 +110,19 @@ async function actuallyInitializeDb() {
 // dbReady Promise defined above
 
 function initializeTables() {
-  if (!db) return;
+  return new Promise((resolve) => {
+    if (!db) {
+      resolve();
+      return;
+    }
+
+    let completed = 0;
+    const total = 8; // número de CREATE TABLE
+
+    const checkComplete = () => {
+      completed++;
+      if (completed === total) resolve();
+    };
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -120,7 +132,7 @@ function initializeTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS apis (
@@ -136,7 +148,7 @@ function initializeTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS projects (
@@ -152,7 +164,7 @@ function initializeTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS costs (
@@ -170,7 +182,7 @@ function initializeTables() {
         FOREIGN KEY (project_id) REFERENCES projects(id),
         FOREIGN KEY (api_id) REFERENCES apis(id)
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS webhooks (
@@ -182,7 +194,7 @@ function initializeTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS alerts (
@@ -199,7 +211,7 @@ function initializeTables() {
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (project_id) REFERENCES projects(id)
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS audit_logs (
@@ -210,7 +222,7 @@ function initializeTables() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
-    `);
+    `, [], checkComplete);
 
     db.run(`
       CREATE TABLE IF NOT EXISTS settings (
@@ -218,7 +230,8 @@ function initializeTables() {
         value TEXT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `, [], checkComplete);
+  });
 }
 
 export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn() };
