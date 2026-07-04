@@ -34,10 +34,14 @@ async function initializeDb() {
         connectionString: databaseUrl,
       });
 
-      // Converter ? para $1, $2, $3 (PostgreSQL format)
+      // Converter SQLite para PostgreSQL format
       const convertQuery = (sql) => {
         let counter = 1;
-        return sql.replace(/\?/g, () => `$${counter++}`);
+        // Converter ? para $1, $2, $3
+        sql = sql.replace(/\?/g, () => `$${counter++}`);
+        // Converter DATETIME para TIMESTAMP
+        sql = sql.replace(/DATETIME/gi, 'TIMESTAMP');
+        return sql;
       };
 
       db = {
