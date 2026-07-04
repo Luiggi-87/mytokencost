@@ -15,6 +15,13 @@ NODE_ENV=production
 JWT_SECRET=your-strong-random-secret
 SENTRY_DSN=https://your-sentry-dsn (optional)
 STRIPE_SECRET_KEY=sk_live_... (optional)
+
+# Password reset (optional)
+FRONTEND_URL=https://mtc.247ia.com.br     # used to build the reset-password link sent by email
+SMTP_HOST=smtp.gmail.com                  # without these, the reset link is only logged to console
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
 ```
 
 #### 3. Health Check

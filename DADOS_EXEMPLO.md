@@ -15,6 +15,19 @@ curl -X POST $BASE_URL/auth/register \
 TOKEN="cole-o-token-aqui"
 ```
 
+## Esqueci a senha
+
+```bash
+curl -X POST $BASE_URL/auth/forgot-password -H "Content-Type: application/json" \
+  -d '{"email":"teste@example.com"}'
+# sempre retorna a mesma mensagem genérica, exista ou não o email (evita enumeração de usuários)
+# se SMTP_HOST não estiver configurado, o link com o token aparece no console/logs do servidor
+
+curl -X POST $BASE_URL/auth/reset-password -H "Content-Type: application/json" \
+  -d '{"token":"token-recebido-por-email-ou-log","newPassword":"nova-senha-123"}'
+# token expira em 1h e só pode ser usado uma vez
+```
+
 ## APIs Exemplo
 
 ```bash

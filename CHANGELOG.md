@@ -35,3 +35,12 @@ Renomeado para **MyTokenCost**.
 - Monitoramento: `monitor.js` + GitHub Actions rodando a cada 6h, error tracking opcional via Sentry
 
 **Status atual**: produção estável, register/login/CRUD principais testados e funcionando (~99% dentro de <1s).
+
+## Fase 5 — Reset de senha
+
+- Novos endpoints `POST /api/auth/forgot-password` e `POST /api/auth/reset-password`; token aleatório (32 bytes), armazenado apenas como hash SHA-256, expira em 1h, uso único
+- `server/email.js` (nodemailer): envia por SMTP se configurado; sem configuração, apenas loga o link no console (não bloqueia o fluxo)
+- Resposta de `forgot-password` é sempre genérica, independente do email existir ou não (evita enumeração de usuários)
+- Frontend: link "Esqueci minha senha" no Login, modo de reset ativado automaticamente via `?reset_token=` na URL
+- **Bug encontrado e corrigido no processo**: `initializeTables()` disparava os `CREATE TABLE`/`ALTER TABLE` sem aguardar (fire-and-forget). Isso permitia que o `ALTER TABLE users` (migração das novas colunas) rodasse antes do `CREATE TABLE users` terminar; no SQLite local isso derrubava o processo inteiro (erro não tratado "no such table"). Corrigido: todas as queries de inicialização agora rodam em sequência com `await`.
+- Testado ponta a ponta local e em produção: registro → forgot-password → reset com token → senha antiga rejeitada → senha nova funciona → token não pode ser reutilizado → email desconhecido recebe resposta idêntica.
