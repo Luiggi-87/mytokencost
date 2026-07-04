@@ -1,6 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../auth.js";
-import db from "../db.js";
+import { dbRun, dbGet, dbAll } from "../db.js";
 import PDFDocument from "pdfkit";
 import { createObjectCsvWriter } from "csv-writer";
 import path from "path";
@@ -12,53 +12,54 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 router.use(authMiddleware);
 
 // GET relatório em PDF ou CSV
-router.get("/summary", (req, res) => {
-  const { startDate, endDate, format = "pdf", projectId } = req.query;
+router.get("/summary", async (req, res) => {
+  try {
+    const { startDate, endDate, format = "pdf", projectId } = req.query;
 
-  let dateFilter = "";
-  const params = [req.userId];
+    let dateFilter = "";
+    const params = [req.userId];
 
-  if (startDate) {
-    dateFilter += " AND c.date >= ?";
-    params.push(startDate);
-  }
-
-  if (endDate) {
-    dateFilter += " AND c.date <= ?";
-    params.push(endDate);
-  }
-
-  if (projectId) {
-    dateFilter += " AND c.project_id = ?";
-    params.push(projectId);
-  }
-
-  // Query dos dados
-  db.all(
-    `SELECT
-       p.name as project_name,
-       a.name as api_name,
-       c.amount,
-       c.units,
-       c.unit_type,
-       c.date,
-       c.description
-     FROM costs c
-     LEFT JOIN projects p ON c.project_id = p.id
-     LEFT JOIN apis a ON c.api_id = a.id
-     WHERE c.user_id = ? ${dateFilter}
-     ORDER BY c.date DESC`,
-    params,
-    (err, costs) => {
-      if (err) return res.status(500).json({ error: err.message });
-
-      if (format === "csv") {
-        generateCSV(res, costs);
-      } else {
-        generatePDF(res, costs, startDate, endDate);
-      }
+    if (startDate) {
+      dateFilter += " AND c.date >= ?";
+      params.push(startDate);
     }
-  );
+
+    if (endDate) {
+      dateFilter += " AND c.date <= ?";
+      params.push(endDate);
+    }
+
+    if (projectId) {
+      dateFilter += " AND c.project_id = ?";
+      params.push(projectId);
+    }
+
+    // Query dos dados
+    const costs = await dbAll(
+      `SELECT
+         p.name as project_name,
+         a.name as api_name,
+         c.amount,
+         c.units,
+         c.unit_type,
+         c.date,
+         c.description
+       FROM costs c
+       LEFT JOIN projects p ON c.project_id = p.id
+       LEFT JOIN apis a ON c.api_id = a.id
+       WHERE c.user_id = ? ${dateFilter}
+       ORDER BY c.date DESC`,
+      params
+    );
+
+    if (format === "csv") {
+      generateCSV(res, costs);
+    } else {
+      generatePDF(res, costs, startDate, endDate);
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 function generatePDF(res, costs, startDate, endDate) {
