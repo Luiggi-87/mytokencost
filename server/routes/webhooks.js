@@ -27,7 +27,7 @@ router.post("/", (req, res) => {
   const id = uuidv4();
   db.run(
     `INSERT INTO webhooks (id, user_id, url, event, active)
-     VALUES (?, ?, ?, ?, 1)`,
+     VALUES (?, ?, ?, ?, TRUE)`,
     [id, req.userId, url, event],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -47,7 +47,7 @@ router.delete("/:id", (req, res) => {
 export async function triggerWebhook(userId, event, data) {
   return new Promise((resolve, reject) => {
     db.all(
-      "SELECT * FROM webhooks WHERE user_id = ? AND event = ? AND active = 1",
+      "SELECT * FROM webhooks WHERE user_id = ? AND event = ? AND active = TRUE",
       [userId, event],
       async (err, webhooks) => {
         if (err) return reject(err);

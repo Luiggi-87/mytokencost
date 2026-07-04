@@ -122,7 +122,7 @@ function initializeTables() {
         api_key TEXT,
         base_url TEXT,
         pricing_model TEXT,
-        unit_cost REAL,
+        unit_cost NUMERIC(10,2),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -136,7 +136,9 @@ function initializeTables() {
         name TEXT NOT NULL,
         client_name TEXT,
         description TEXT,
-        monthly_rate REAL,
+        monthly_rate NUMERIC(10,2),
+        stripe_customer_id TEXT,
+        stripe_auto_charge BOOLEAN DEFAULT FALSE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -149,7 +151,7 @@ function initializeTables() {
         user_id TEXT NOT NULL,
         project_id TEXT NOT NULL,
         api_id TEXT NOT NULL,
-        amount REAL NOT NULL,
+        amount NUMERIC(10,2) NOT NULL,
         units INTEGER,
         unit_type TEXT,
         description TEXT,

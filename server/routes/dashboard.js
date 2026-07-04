@@ -47,7 +47,7 @@ router.get('/summary', (req, res) => {
              FROM projects p
              LEFT JOIN costs c ON p.id = c.project_id
              WHERE p.user_id = ?
-             GROUP BY p.id, p.name
+             GROUP BY p.id, p.name, p.client_name
              ORDER BY total DESC`,
             [req.userId],
             (err, byProject) => {
@@ -71,11 +71,11 @@ router.get('/summary', (req, res) => {
 router.get('/monthly', (req, res) => {
   db.all(
     `SELECT
-       strftime('%Y-%m-%d', c.date) as date,
+       TO_CHAR(c.date, 'YYYY-MM-DD') as date,
        COALESCE(SUM(c.amount), 0) as total
      FROM costs c
-     WHERE c.user_id = ? AND c.date >= datetime('now', '-30 days')
-     GROUP BY date
+     WHERE c.user_id = ? AND c.date >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+     GROUP BY TO_CHAR(c.date, 'YYYY-MM-DD')
      ORDER BY date DESC`,
     [req.userId],
     (err, rows) => {

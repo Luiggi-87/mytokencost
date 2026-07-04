@@ -26,7 +26,7 @@ router.post("/", (req, res) => {
   const id = uuidv4();
   db.run(
     `INSERT INTO alerts (id, user_id, project_id, type, threshold, action, recipients, active)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)`,
     [id, req.userId, projectId || null, type, threshold, action || "email", recipients || ""],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -46,7 +46,7 @@ router.delete("/:id", (req, res) => {
 // Toggle alerta
 router.patch("/:id/toggle", (req, res) => {
   db.run(
-    "UPDATE alerts SET active = NOT active WHERE id = ? AND user_id = ?",
+    "UPDATE alerts SET active = (CASE WHEN active THEN FALSE ELSE TRUE END) WHERE id = ? AND user_id = ?",
     [req.params.id, req.userId],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -59,7 +59,7 @@ export async function checkAlerts(userId, projectId, totalCost) {
   return new Promise((resolve, reject) => {
     db.all(
       `SELECT * FROM alerts
-       WHERE user_id = ? AND active = 1
+       WHERE user_id = ? AND active = TRUE
        AND (project_id = ? OR project_id IS NULL)
        AND type = 'limit_exceeded'`,
       [userId, projectId],
