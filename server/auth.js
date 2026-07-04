@@ -34,7 +34,7 @@ export const registerUser = (email, password, organizationName) => {
     const timeout = setTimeout(() => {
       console.warn('⚠️ Register timeout - callback não respondeu em 5s');
       resolve({ id, email, organizationName });
-    }, 5000);
+    }, 10000);
 
     db.run(
       `INSERT INTO users (id, email, password_hash, organization_name, created_at)
@@ -54,7 +54,7 @@ export const loginUser = (email, password) => {
     const timeout = setTimeout(() => {
       console.warn('⚠️ Login timeout - callback não respondeu em 5s');
       reject(new Error("Timeout ao acessar banco de dados"));
-    }, 5000);
+    }, 10000);
 
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
       clearTimeout(timeout);
@@ -77,7 +77,7 @@ export const getUserById = (userId) => {
     const timeout = setTimeout(() => {
       console.warn('⚠️ GetUser timeout - callback não respondeu em 5s');
       reject(new Error("Timeout ao acessar banco de dados"));
-    }, 5000);
+    }, 10000);
 
     db.get("SELECT id, email, organization_name, created_at FROM users WHERE id = ?", [userId], (err, user) => {
       clearTimeout(timeout);
