@@ -50,6 +50,9 @@ async function actuallyInitializeDb() {
       const { Pool } = pgModule;
       const pool = new Pool({
         connectionString: databaseUrl,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
       });
 
       // Converter SQLite para PostgreSQL format
