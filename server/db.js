@@ -73,15 +73,14 @@ async function actuallyInitializeDb() {
           const convertedSql = convertQuery(sql);
           console.log('🔍 DB RUN:', convertedSql.substring(0, 50) + '...');
 
-          if (!callback) callback = () => {}; // Evitar erro se callback for undefined
+          if (!callback) callback = () => {};
 
-          pool.query(convertedSql, params, (err, result) => {
-            if (err) {
-              console.error('❌ DB ERROR:', err.message);
-              return callback(err, null);
-            }
-            console.log('✓ Query executada com sucesso');
+          pool.query(convertedSql, params).then(result => {
+            console.log('✓ Query executada');
             callback(null, result);
+          }).catch(err => {
+            console.error('❌ DB ERROR:', err.message);
+            callback(err, null);
           });
         },
         all: (sql, params = [], callback) => {
@@ -89,12 +88,11 @@ async function actuallyInitializeDb() {
 
           if (!callback) callback = () => {};
 
-          pool.query(convertedSql, params, (err, result) => {
-            if (err) {
-              console.error('❌ DB ERROR:', err.message);
-              return callback(err, []);
-            }
+          pool.query(convertedSql, params).then(result => {
             callback(null, result?.rows || []);
+          }).catch(err => {
+            console.error('❌ DB ERROR:', err.message);
+            callback(err, []);
           });
         },
         get: (sql, params = [], callback) => {
@@ -102,12 +100,11 @@ async function actuallyInitializeDb() {
 
           if (!callback) callback = () => {};
 
-          pool.query(convertedSql, params, (err, result) => {
-            if (err) {
-              console.error('❌ DB ERROR:', err.message);
-              return callback(err, null);
-            }
+          pool.query(convertedSql, params).then(result => {
             callback(null, result?.rows?.[0]);
+          }).catch(err => {
+            console.error('❌ DB ERROR:', err.message);
+            callback(err, null);
           });
         },
         serialize: (fn) => fn(),
