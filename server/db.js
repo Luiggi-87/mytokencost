@@ -108,8 +108,8 @@ function initializeTables() {
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
         organization_name TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -123,8 +123,8 @@ function initializeTables() {
         base_url TEXT,
         pricing_model TEXT,
         unit_cost NUMERIC(10,2),
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
@@ -139,8 +139,8 @@ function initializeTables() {
         monthly_rate NUMERIC(10,2),
         stripe_customer_id TEXT,
         stripe_auto_charge BOOLEAN DEFAULT FALSE,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
@@ -155,8 +155,8 @@ function initializeTables() {
         units INTEGER,
         unit_type TEXT,
         description TEXT,
-        date DATETIME DEFAULT CURRENT_TIMESTAMP,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (project_id) REFERENCES projects(id),
         FOREIGN KEY (api_id) REFERENCES apis(id)
@@ -169,8 +169,8 @@ function initializeTables() {
         user_id TEXT NOT NULL,
         url TEXT NOT NULL,
         event TEXT NOT NULL,
-        active BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        active BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
@@ -184,9 +184,9 @@ function initializeTables() {
         threshold REAL,
         action TEXT,
         recipients TEXT,
-        active BOOLEAN DEFAULT 1,
-        triggered_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        active BOOLEAN DEFAULT FALSE,
+        triggered_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (project_id) REFERENCES projects(id)
       )
@@ -198,7 +198,7 @@ function initializeTables() {
         user_id TEXT,
         action TEXT,
         details TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
     `);
@@ -207,7 +207,7 @@ function initializeTables() {
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 }
