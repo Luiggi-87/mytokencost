@@ -1,6 +1,6 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
-import db from "../db.js";
+import { dbRun, dbGet, dbAll } from "../db.js";
 import { authMiddleware } from "../auth.js";
 import axios from "axios";
 
@@ -9,65 +9,65 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // GET webhooks do usuário
-router.get("/", (req, res) => {
-  db.all("SELECT * FROM webhooks WHERE user_id = ? ORDER BY created_at DESC", [req.userId], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.get("/", async (req, res) => {
+  try {
+    const rows = await dbAll("SELECT * FROM webhooks WHERE user_id = ? ORDER BY created_at DESC", [req.userId]);
     res.json(rows || []);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST novo webhook
-router.post("/", (req, res) => {
-  const { url, event } = req.body;
+router.post("/", async (req, res) => {
+  try {
+    const { url, event } = req.body;
 
-  if (!url || !event) {
-    return res.status(400).json({ error: "URL e event obrigatórios" });
-  }
-
-  const id = uuidv4();
-  db.run(
-    `INSERT INTO webhooks (id, user_id, url, event, active)
-     VALUES (?, ?, ?, ?, TRUE)`,
-    [id, req.userId, url, event],
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id, url, event });
+    if (!url || !event) {
+      return res.status(400).json({ error: "URL e event obrigatórios" });
     }
-  );
+
+    const id = uuidv4();
+    await dbRun(
+      `INSERT INTO webhooks (id, user_id, url, event, active)
+       VALUES (?, ?, ?, ?, TRUE)`,
+      [id, req.userId, url, event]
+    );
+    res.status(201).json({ id, url, event });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // DELETE webhook
-router.delete("/:id", (req, res) => {
-  db.run("DELETE FROM webhooks WHERE id = ? AND user_id = ?", [req.params.id, req.userId], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.delete("/:id", async (req, res) => {
+  try {
+    await dbRun("DELETE FROM webhooks WHERE id = ? AND user_id = ?", [req.params.id, req.userId]);
     res.json({ message: "Webhook removido" });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export async function triggerWebhook(userId, event, data) {
-  return new Promise((resolve, reject) => {
-    db.all(
-      "SELECT * FROM webhooks WHERE user_id = ? AND event = ? AND active = TRUE",
-      [userId, event],
-      async (err, webhooks) => {
-        if (err) return reject(err);
+  const webhooks = await dbAll(
+    "SELECT * FROM webhooks WHERE user_id = ? AND event = ? AND active = TRUE",
+    [userId, event]
+  );
 
-        for (const webhook of webhooks) {
-          try {
-            await axios.post(webhook.url, {
-              event,
-              timestamp: new Date().toISOString(),
-              data,
-            });
-          } catch (error) {
-            console.error(`Webhook failed: ${webhook.url}`, error.message);
-          }
-        }
+  for (const webhook of webhooks) {
+    try {
+      await axios.post(webhook.url, {
+        event,
+        timestamp: new Date().toISOString(),
+        data,
+      });
+    } catch (error) {
+      console.error(`Webhook failed: ${webhook.url}`, error.message);
+    }
+  }
 
-        resolve(webhooks.length);
-      }
-    );
-  });
+  return webhooks.length;
 }
 
 export default router;
