@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
-import db from "./db.js";
+import db, { dbReady } from "./db.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-prod";
 
@@ -27,6 +27,7 @@ export const verifyToken = (token) => {
 
 export const registerUser = async (email, password, organizationName) => {
   try {
+    await dbReady;
     const id = uuidv4();
     const passwordHash = await hashPassword(password);
 
@@ -48,6 +49,7 @@ export const registerUser = async (email, password, organizationName) => {
 export const loginUser = async (email, password) => {
   console.log('🔐 loginUser chamado para:', email);
   try {
+    await dbReady;
     console.log('🔍 Consultando usuário...');
     // Use the raw pool for direct async/await
     const result = await db.pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -75,6 +77,7 @@ export const loginUser = async (email, password) => {
 
 export const getUserById = async (userId) => {
   try {
+    await dbReady;
     const result = await db.pool.query("SELECT id, email, organization_name, created_at FROM users WHERE id = $1", [userId]);
     return result.rows?.[0];
   } catch (err) {
