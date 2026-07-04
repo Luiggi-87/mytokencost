@@ -202,5 +202,4 @@ export const dbAll = (sql, params = []) => {
   });
 };
 
-export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn() };
 export { dbReady };

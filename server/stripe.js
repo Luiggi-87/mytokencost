@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import db from "./db.js";
+import { dbRun, dbGet } from "./db.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
@@ -20,7 +20,7 @@ export async function createStripeCustomer(projectId, clientName, email) {
     });
 
     // Salvar Stripe customer ID no banco
-    db.run(
+    await dbRun(
       "UPDATE projects SET stripe_customer_id = ? WHERE id = ?",
       [customer.id, projectId]
     );
@@ -41,38 +41,32 @@ export async function chargeStripeCustomer(projectId, amount, description) {
     return null;
   }
 
-  return new Promise((resolve, reject) => {
-    db.get(
-      "SELECT stripe_customer_id FROM projects WHERE id = ?",
-      [projectId],
-      async (err, project) => {
-        if (err) return reject(err);
-        if (!project?.stripe_customer_id) {
-          console.log(
-            `Projeto ${projectId} não tem Stripe customer configurado`
-          );
-          return resolve(null);
-        }
+  const project = await dbGet(
+    "SELECT stripe_customer_id FROM projects WHERE id = ?",
+    [projectId]
+  );
 
-        try {
-          // Criar taxa no Stripe
-          const charge = await stripe.charges.create({
-            customer: project.stripe_customer_id,
-            amount: Math.round(amount * 100), // em centavos
-            currency: "brl",
-            description: description || `Custos de API - ${projectId}`,
-            metadata: { projectId, amount },
-          });
+  if (!project?.stripe_customer_id) {
+    console.log(`Projeto ${projectId} não tem Stripe customer configurado`);
+    return null;
+  }
 
-          console.log(`✅ Cobrança Stripe: R$ ${amount} para projeto ${projectId}`);
-          resolve(charge);
-        } catch (error) {
-          console.error("Erro ao cobrar Stripe:", error);
-          reject(error);
-        }
-      }
-    );
-  });
+  try {
+    // Criar taxa no Stripe
+    const charge = await stripe.charges.create({
+      customer: project.stripe_customer_id,
+      amount: Math.round(amount * 100), // em centavos
+      currency: "brl",
+      description: description || `Custos de API - ${projectId}`,
+      metadata: { projectId, amount },
+    });
+
+    console.log(`✅ Cobrança Stripe: R$ ${amount} para projeto ${projectId}`);
+    return charge;
+  } catch (error) {
+    console.error("Erro ao cobrar Stripe:", error);
+    throw error;
+  }
 }
 
 /**

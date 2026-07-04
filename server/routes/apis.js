@@ -1,6 +1,6 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import db, { dbRun, dbGet, dbAll } from '../db.js';
+import { dbRun, dbGet, dbAll } from '../db.js';
 import { authMiddleware } from '../auth.js';
 
 const router = express.Router();
@@ -57,30 +57,33 @@ router.post('/', async (req, res) => {
 });
 
 // PUT atualizar API
-router.put('/:id', (req, res) => {
-  const { name, type, api_key, base_url, pricing_model, unit_cost } = req.body;
-  const { id } = req.params;
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, type, api_key, base_url, pricing_model, unit_cost } = req.body;
+    const { id } = req.params;
 
-  const sql = `
-    UPDATE apis
-    SET name = ?, type = ?, api_key = ?, base_url = ?, pricing_model = ?, unit_cost = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND user_id = ?
-  `;
+    const sql = `
+      UPDATE apis
+      SET name = ?, type = ?, api_key = ?, base_url = ?, pricing_model = ?, unit_cost = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND user_id = ?
+    `;
 
-  db.run(sql, [name, type, api_key, base_url, pricing_model, unit_cost, id, req.userId], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+    await dbRun(sql, [name, type, api_key, base_url, pricing_model, unit_cost, id, req.userId]);
     res.json({ id, name, type, updated_at: new Date() });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // DELETE API
-router.delete('/:id', (req, res) => {
-  const { id } = req.params;
-
-  db.run('DELETE FROM apis WHERE id = ? AND user_id = ?', [id, req.userId], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await dbRun('DELETE FROM apis WHERE id = ? AND user_id = ?', [id, req.userId]);
     res.json({ message: 'API removida' });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

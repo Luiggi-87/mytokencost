@@ -5,7 +5,6 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import db from './db.js';
 import { initSentry, captureException } from './sentry.js';
 import setupWebSocket, { emitToUser } from './websocket.js';
 import { dbReady } from './db.js';

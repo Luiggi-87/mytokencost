@@ -1,6 +1,6 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import db, { dbRun, dbGet, dbAll } from '../db.js';
+import { dbRun, dbGet, dbAll } from '../db.js';
 import { authMiddleware } from '../auth.js';
 
 const router = express.Router();
