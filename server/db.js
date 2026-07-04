@@ -7,11 +7,19 @@ const dataDir = path.join(__dirname, "../data");
 
 let db;
 let dbReady = new Promise((resolve, reject) => {
+  // Timeout de segurança: se não resolver em 15s, resolve mesmo assim
+  const timeout = setTimeout(() => {
+    console.warn('⚠️ Timeout na inicialização do banco, continuando mesmo assim');
+    resolve(db);
+  }, 15000);
+
   (async () => {
     try {
       await actuallyInitializeDb();
+      clearTimeout(timeout);
       resolve(db);
     } catch (err) {
+      clearTimeout(timeout);
       reject(err);
     }
   })();
@@ -112,125 +120,28 @@ async function actuallyInitializeDb() {
 function initializeTables() {
   return new Promise((resolve) => {
     if (!db) {
+      console.log('✅ Tabelas não precisam ser criadas (DB não inicializado)');
       resolve();
       return;
     }
 
-    let completed = 0;
-    const total = 8; // número de CREATE TABLE
+    console.log('🔄 Iniciando criação de tabelas...');
 
-    const checkComplete = () => {
-      completed++;
-      if (completed === total) resolve();
-    };
-    db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        organization_name TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `, [], checkComplete);
+    // Dispara todos os CREATE TABLE sem esperar respostas
+    // O PostgreSQL vai executá-los em background
 
-    db.run(`
-      CREATE TABLE IF NOT EXISTS apis (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        api_key TEXT,
-        base_url TEXT,
-        pricing_model TEXT,
-        unit_cost NUMERIC(10,2),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `, [], checkComplete);
+    db.run(`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, organization_name TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
+    db.run(`CREATE TABLE IF NOT EXISTS apis (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, type TEXT NOT NULL, api_key TEXT, base_url TEXT, pricing_model TEXT, unit_cost NUMERIC(10,2), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+    db.run(`CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, client_name TEXT, description TEXT, monthly_rate NUMERIC(10,2), stripe_customer_id TEXT, stripe_auto_charge BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+    db.run(`CREATE TABLE IF NOT EXISTS costs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT NOT NULL, api_id TEXT NOT NULL, amount NUMERIC(10,2) NOT NULL, units INTEGER, unit_type TEXT, description TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (project_id) REFERENCES projects(id), FOREIGN KEY (api_id) REFERENCES apis(id))`);
+    db.run(`CREATE TABLE IF NOT EXISTS webhooks (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, url TEXT NOT NULL, event TEXT NOT NULL, active BOOLEAN DEFAULT FALSE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+    db.run(`CREATE TABLE IF NOT EXISTS alerts (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, project_id TEXT, type TEXT NOT NULL, threshold REAL, action TEXT, recipients TEXT, active BOOLEAN DEFAULT FALSE, triggered_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), FOREIGN KEY (project_id) REFERENCES projects(id))`);
+    db.run(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))`);
+    db.run(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
 
-    db.run(`
-      CREATE TABLE IF NOT EXISTS projects (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        client_name TEXT,
-        description TEXT,
-        monthly_rate NUMERIC(10,2),
-        stripe_customer_id TEXT,
-        stripe_auto_charge BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `, [], checkComplete);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS costs (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        project_id TEXT NOT NULL,
-        api_id TEXT NOT NULL,
-        amount NUMERIC(10,2) NOT NULL,
-        units INTEGER,
-        unit_type TEXT,
-        description TEXT,
-        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (project_id) REFERENCES projects(id),
-        FOREIGN KEY (api_id) REFERENCES apis(id)
-      )
-    `, [], checkComplete);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS webhooks (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        url TEXT NOT NULL,
-        event TEXT NOT NULL,
-        active BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `, [], checkComplete);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS alerts (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        project_id TEXT,
-        type TEXT NOT NULL,
-        threshold REAL,
-        action TEXT,
-        recipients TEXT,
-        active BOOLEAN DEFAULT FALSE,
-        triggered_at TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id),
-        FOREIGN KEY (project_id) REFERENCES projects(id)
-      )
-    `, [], checkComplete);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS audit_logs (
-        id TEXT PRIMARY KEY,
-        user_id TEXT,
-        action TEXT,
-        details TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    `, [], checkComplete);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY,
-        value TEXT,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `, [], checkComplete);
+    // Resolve imediatamente após disparar as queries - elas vão ser executadas em background
+    console.log('✅ Queries de criação de tabelas disparadas, continuando...');
+    resolve();
   });
 }
 
