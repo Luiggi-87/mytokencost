@@ -1,155 +1,68 @@
-# ⚡ MyTokenCost - Quick Start (5 min)
+# ⚡ MyTokenCost - Quick Start
 
-## 1️⃣ Install
+## Local
 
 ```bash
 npm install
-```
-
-## 2️⃣ Run
-
-**Windows:**
-```bash
 npm run dev
-# or double-click start.bat
 ```
 
-**Mac/Linux:**
+Acesso: http://localhost:3001
+
+## Produção
+
+Frontend: https://mtc.247ia.com.br
+Backend: https://mytokencost-production.up.railway.app
+
+## 1️⃣ Criar conta
+
 ```bash
-npm run dev
-# or: bash start.sh
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"voce@empresa.com","password":"sua-senha","organizationName":"Minha Empresa"}'
 ```
 
-## 3️⃣ Access
+Guarda o `token` retornado — todas as chamadas seguintes usam `Authorization: Bearer <token>`.
 
-Open in browser:
-```
-http://localhost:3001
-```
+## 2️⃣ Adicionar uma API
 
-## 4️⃣ Configurar APIs
+Pela UI: aba **🔌 APIs** → **Adicionar Nova API** → nome, tipo, modelo de preço (ex: "Por Token"), custo unitário.
 
-1. Vá para aba **🔌 APIs**
-2. Clique **➕ Adicionar Nova API**
-3. Preencha:
-   - Nome: Ex: "Anthropic Claude"
-   - Tipo: Selecione da lista
-   - API Key: (opcional, apenas local)
-   - Modelo de Preço: "Por Token"
-   - Custo: Ex: 0.000003 (R$ por token)
-4. Clique **Adicionar**
-
-### Exemplos de Preço (atualizar conforme necessário)
-
-**Anthropic Claude 3.5 Sonnet**
-- Input: R$ 0.000002 por token
-- Output: R$ 0.00001 por token
-
-**OpenAI GPT-4**
-- Input: R$ 0.000015 por token
-- Output: R$ 0.00006 por token
-
-**Google Gemini**
-- Input: R$ 0.00000025 por token
-- Output: R$ 0.000001 por token
-
-## 5️⃣ Criar Projeto
-
-1. Vá para **📁 Projetos**
-2. Clique **➕ Novo Projeto**
-3. Preencha:
-   - Nome do Projeto: "Agente de Vendas"
-   - Cliente: "Empresa XYZ"
-   - Taxa Mensal: Deixe 0 se não souber
-4. Clique **Criar**
-
-## 6️⃣ Registrar Custo
-
-1. Vá para **💸 Custos**
-2. Clique **Registrar Custo**
-3. Preencha:
-   - Projeto: "Agente de Vendas"
-   - API: "Anthropic Claude"
-   - Valor: 0.15 (exemplo em R$)
-   - Quantidade: 5000 (tokens)
-4. Clique **Registrar Custo**
-
-## 7️⃣ Ver Dashboard
-
-Volte para **📊 Dashboard** e veja:
-- Total gasto
-- Custos por API
-- Custos por Projeto
-
----
-
-## 🔄 Fluxo Completo
-
-```
-1. Adicionar API (preços, tipos)
-   ↓
-2. Criar Projeto (cliente/app)
-   ↓
-3. Usar a API (chamadas no seu app)
-   ↓
-4. Registrar Custo (quanto gastou)
-   ↓
-5. Ver no Dashboard (análise visual)
-   ↓
-6. Cobrar Cliente (use os dados)
-```
-
----
-
-## 📱 Testar Endpoints
-
-### Listar APIs
+Via curl:
 ```bash
-curl http://localhost:3001/api/apis
+TOKEN="seu-token-aqui"
+curl -X POST http://localhost:3001/api/apis \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"Anthropic Claude 3.5","type":"anthropic","pricing_model":"por_token","unit_cost":0.0000015}'
 ```
 
-### Listar Projetos
+## 3️⃣ Criar projeto
+
+Pela UI: aba **📁 Projetos** → **Novo Projeto**.
+
+## 4️⃣ Registrar custo
+
+Pela UI: aba **💸 Custos** → **Registrar Custo** (escolha projeto, API, valor, quantidade).
+
+## 5️⃣ Ver Dashboard
+
+Volta para **📊 Dashboard** — total gasto, por API, por projeto, atualização em tempo real via WebSocket.
+
+## Fluxo completo
+
+```
+Registrar conta → Adicionar API → Criar Projeto → Usar API no seu app
+    → Registrar Custo → Ver Dashboard → Cobrar Cliente
+```
+
+## Endpoints úteis
+
 ```bash
-curl http://localhost:3001/api/projects
+curl http://localhost:3001/api/health                     # sem autenticação
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3001/api/apis
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3001/api/projects
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3001/api/dashboard/summary
 ```
 
-### Dashboard
-```bash
-curl http://localhost:3001/api/dashboard/summary
-```
-
-### Health Check
-```bash
-curl http://localhost:3001/api/health
-```
-
----
-
-## 🚀 Deploy (Próximo Passo)
-
-Ver [DEPLOY.md](DEPLOY.md) para Netlify, Railway, Docker, etc.
-
----
-
-## ❓ Dúvidas Comuns
-
-**P: Posso usar sem internet?**
-R: Sim, tudo roda localmente. Apenas configure as APIs manualmente.
-
-**P: Os dados ficam seguros?**
-R: Sim, SQLite local. Nenhum dado sai do seu computador.
-
-**P: Como exportar dados?**
-R: Futura feature. Por enquanto, o SQLite pode ser consultado diretamente.
-
-**P: Precisa de servidor dedicado?**
-R: Não agora. Depois você pode hospedar na Netlify, Railway, etc.
-
-**P: Como sincronizar com as APIs reais?**
-R: Implementação futura. Por enquanto é manual.
-
----
-
-Qualquer dúvida, veja os arquivos:
-- [README.md](README.md) - Documentação completa
-- [DEPLOY.md](DEPLOY.md) - Como hospedar online
+Mais exemplos (SDKs, dados de teste): [DADOS_EXEMPLO.md](DADOS_EXEMPLO.md)
+Deploy: [DEPLOY.md](DEPLOY.md)

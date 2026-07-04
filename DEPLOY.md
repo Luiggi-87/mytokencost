@@ -5,8 +5,8 @@
 ### Backend (Railway)
 
 #### 1. Database Configuration
-- Railway PostgreSQL automatically linked via DATABASE_URL
-- Connection pooling: 20 max connections
+- Railway PostgreSQL linked via a `DATABASE_URL` **reference variable** (Railway's "Add Variable" banner in the app service's Variables tab), pointing at the internal hostname (`*.railway.internal`) — not the public proxy.
+- Connection pooling: 20 max connections, `query_timeout`/`statement_timeout`: 8s (prevents indefinite hangs)
 - Auto-scaling enabled
 
 #### 2. Required Environment Variables
@@ -47,6 +47,17 @@ VITE_API_URL=https://mytokencost-production.up.railway.app
 - Set SENTRY_DSN environment variable
 - All errors automatically logged
 - Real-time alerts for critical errors
+
+---
+
+## 🐛 Known Issues (Resolved)
+
+### `auth/register` and `auth/login` hanging ~5min then 502
+**Root cause**: `server/db.js` exported `export default db || {stub}` at the top level. This expression evaluates once, at module-load time — while `db` was still `undefined` (PostgreSQL connects asynchronously). The default export froze permanently as a no-op stub (`run: () => {}`) that never invokes callbacks. Every file importing `db` directly (`server/auth.js`, PUT/DELETE in `apis.js`, `stripe.js`) had its DB calls silently swallowed — the returned Promise never resolved/rejected, and Railway's edge proxy eventually returned 502 after its own timeout.
+
+**Fix**: removed the broken default export; every file now uses the promisified helpers `dbRun`/`dbGet`/`dbAll` exported from `db.js`, which close over the live `db` variable inside the module instead of a snapshot taken at import time.
+
+**Lesson**: never do `export default someAsyncallyAssignedVariable || fallback` — the assignment is a one-time snapshot, not a live binding. Export functions/helpers that read the variable lazily instead.
 
 ---
 

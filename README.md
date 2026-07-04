@@ -1,190 +1,107 @@
-# 💰 MyTokenCost - Real-time API Cost Management
+# 💰 MyTokenCost
 
-Complete system to track, calculate, and manage costs from multiple APIs (Anthropic, OpenAI, Google, Firecrawl, etc.). Ready to run locally and deploy to Netlify.
+Sistema multi-tenant para rastrear, calcular e gerenciar custos de múltiplas APIs de IA (Anthropic, OpenAI, Google, Firecrawl, etc.), com dashboard em tempo real, alertas, webhooks, relatórios e cobrança automática via Stripe.
 
-## 🚀 Quick Start
+**Produção:**
+- Frontend: https://mtc.247ia.com.br (Netlify)
+- Backend: https://mytokencost-production.up.railway.app (Railway + PostgreSQL)
 
-### Requisitos
-- Node.js 16+
-- npm ou yarn
-
-### Instalação Local
+## 🚀 Rodando localmente
 
 ```bash
-# 1. Instalar dependências
 npm install
-
-# 2. Copiar arquivo de configuração
 cp .env.example .env
-
-# 3. Rodar servidor (desenvolvimento)
 npm run dev
 ```
 
-Acesso: http://localhost:3001
+Acesso: http://localhost:3001 (usa SQLite local automaticamente — veja `server/db.js`)
 
-### Build para Produção
-
-```bash
-# Build do frontend
-npm run build
-
-# Rodar servidor em produção
-npm run start
-```
+Build de produção: `npm run build && npm run start`
 
 ## 📊 Funcionalidades
 
-### Dashboard
-- **Total Gasto**: Visualização em tempo real
-- **Por API**: Breakdown detalhado por provedor (Anthropic, OpenAI, Google, etc.)
-- **Por Projeto**: Custos segmentados por cliente/projeto
-- **Gráficos**: Últimos 30 dias e tendências
-
-### Gerenciamento de APIs
-Suporte para:
-- 🧠 Anthropic Claude
-- 🤖 OpenAI
-- 🔍 Google AI Studio
-- 🔥 Firecrawl
-- 🤗 Hugging Face
-- 📝 Cohere
-- ⚡ Mistral
-- ⚙️ Groq
-- 🎬 Replicate
-- 📦 Customizável
-
-Modelos de precificação:
-- Por Token
-- Por Requisição
-- Por Minuto
-- Por GB
-- Subscription
-
-### Projetos
-- Criar projetos com cliente associado
-- Taxa mensal de referência
-- Rastreamento de custos por projeto
-
-### Rastreamento de Custos
-- Registrar custos por API/Projeto
-- Incluir quantidade de unidades (tokens, requisições, etc)
-- Histórico completo
-- Filtros por período
+- **Autenticação JWT** multi-tenant (cada usuário só vê seus próprios dados)
+- **Dashboard em tempo real** via WebSocket (Socket.io) — total gasto, por API, por projeto, últimos 30 dias
+- **APIs suportadas**: Anthropic, OpenAI, Google AI Studio, Firecrawl, Hugging Face, Cohere, Mistral, Groq, Replicate, customizável
+- **Projetos/Clientes**: taxa mensal de referência, custos segmentados
+- **Rastreamento de custos**: manual ou automático via SDKs proxy (`packages/sdk/*`)
+- **Webhooks**: notificação em eventos de custo, retry automático
+- **Alertas**: limite de gasto, detecção de anomalia (email/Slack/webhook)
+- **Relatórios**: PDF, CSV, JSON
+- **Stripe**: criação de customer e cobrança automática por projeto
 
 ## 🗄️ Banco de Dados
 
-Usa **SQLite** localmente. Migração para Supabase (PostgreSQL) é trivial depois.
+- **Local/dev**: SQLite (`server/db.js` detecta ausência de `DATABASE_URL`)
+- **Produção**: PostgreSQL (Railway), selecionado automaticamente quando `DATABASE_URL` está presente
+- Conversão de dialeto SQLite→PostgreSQL é automática (`convertQuery()` em `server/db.js`)
 
-### Tabelas
-- `apis`: Configuração de APIs
-- `projects`: Projetos/Clientes
-- `costs`: Histórico de custos
-- `settings`: Configurações gerais
+Tabelas: `users`, `apis`, `projects`, `costs`, `webhooks`, `alerts`, `audit_logs`, `settings`
 
-## 🌐 Deploy na Netlify
+## 🔌 Endpoints principais
 
-### Opção 1: Netlify Functions (Recomendado)
+Todas as rotas (exceto `/api/auth/*` e `/api/health`) exigem header `Authorization: Bearer <token>`.
 
-1. Push para GitHub
-2. Conectar repo no Netlify
-3. Configurar build:
-   ```
-   Build command: npm run build
-   Publish directory: dist
-   ```
-4. Adicionar variáveis de ambiente:
-   ```
-   NODE_ENV=production
-   DATABASE=./.netlify/cache/api-costs.db
-   ```
-
-### Opção 2: Railway / Render (Servidor Node)
-
-1. Deploy como app Node.js padrão
-2. Usar PostgreSQL/Supabase em vez de SQLite
-3. Variáveis de ambiente necessárias
-
-## 🔧 Configuração
-
-### .env
-```env
-PORT=3001
-NODE_ENV=development
-DATABASE=./data/api-costs.db
 ```
+POST   /api/auth/register         POST /api/auth/login       GET /api/auth/me
+GET    /api/apis                  POST/PUT/DELETE /api/apis/:id
+GET    /api/projects              POST/PUT/DELETE /api/projects/:id
+GET    /api/costs                 POST/DELETE /api/costs/:id
+GET    /api/dashboard/summary     GET /api/dashboard/monthly
+GET    /api/webhooks              POST/DELETE /api/webhooks/:id
+GET    /api/alerts                POST/DELETE/PATCH /api/alerts/:id
+GET    /api/reports/*
+GET    /api/health                (sem autenticação)
+```
+
+Exemplos completos de uso: [DADOS_EXEMPLO.md](DADOS_EXEMPLO.md)
 
 ## 📦 Estrutura do Projeto
 
 ```
-.
-├── server/
-│   ├── index.js           # Servidor Express
-│   ├── db.js              # Inicialização SQLite
-│   └── routes/
-│       ├── apis.js        # API de APIs
-│       ├── projects.js    # API de Projetos
-│       ├── costs.js       # API de Custos
-│       └── dashboard.js   # API de Dashboard
-├── client/
-│   ├── App.jsx            # Componente principal
-│   ├── components/        # Componentes React
-│   ├── styles/            # CSS
-│   └── main.jsx           # Entry point
-├── index.html
-├── vite.config.js
-├── package.json
-└── .env.example
+server/
+  index.js              # Servidor Express + WebSocket
+  db.js                 # Conexão SQLite/PostgreSQL + helpers (dbRun, dbGet, dbAll)
+  auth.js               # JWT, bcrypt, middleware
+  stripe.js              # Integração Stripe
+  sentry.js              # Error tracking (opcional, via SENTRY_DSN)
+  routes/                # auth, apis, projects, costs, dashboard, webhooks, alerts, reports, stripe
+client/
+  App.jsx, components/, styles/, main.jsx
+packages/sdk/
+  anthropic-proxy/, openai-proxy/, gemini-proxy/   # SDKs com rastreamento automático de custo
+monitor.js               # Script de monitoramento de produção
+.github/workflows/monitor.yml   # Monitoramento automático (a cada 6h)
 ```
 
-## 🎯 Caso de Uso
+## 🌐 Deploy
 
-1. **Configurar APIs**: Adicione suas chaves de API e modelos de preço
-2. **Criar Projetos**: Crie um projeto para cada cliente
-3. **Registrar Custos**: Registre cada custo/consumo manualmente ou via integração
-4. **Analisar**: Veja o dashboard para entender os gastos
-5. **Cobrar**: Use os dados para cobrar clientes de forma precisa
+Guia completo: [DEPLOY.md](DEPLOY.md) — Railway (backend), Netlify (frontend), variáveis de ambiente, monitoramento, troubleshooting.
 
-## 🔌 Integrações Futuras
+## 💻 SDKs com rastreamento automático
 
-- [ ] Sync automático com APIs (Anthropic, OpenAI, etc)
-- [ ] Export de relatórios (PDF, CSV)
-- [ ] Webhooks para eventos de custo
-- [ ] Alertas de limite de gastos
-- [ ] Multi-tenant para gestores de agência
+```bash
+npm install @contador-tokens/anthropic-proxy
+```
+```javascript
+import { CountedAnthropic } from "@contador-tokens/anthropic-proxy";
+const client = new CountedAnthropic({ apiKey: process.env.ANTHROPIC_KEY, projectId: "seu-projeto" });
+// Custos rastreados automaticamente
+```
+Também disponível: `@contador-tokens/openai-proxy`, `@contador-tokens/gemini-proxy`.
 
-## 📝 Roadmap
+## 🔐 Segurança
 
-- [ ] GraphQL API
-- [ ] Autenticação de usuários
-- [ ] Auditorias de acesso
-- [ ] Integração com Stripe para invoicing automático
-- [ ] Mobile app
-- [ ] Previsão de custos com ML
+- Senhas com bcrypt (10 rounds), JWT (7 dias), CORS configurado, WebSocket autenticado, isolamento de dados por usuário, prepared statements.
 
 ## 🐛 Troubleshooting
 
-**Erro de porta em uso**
-```bash
-# Mudar porta
-PORT=3002 npm run dev
-```
+Ver seção "Troubleshooting" em [DEPLOY.md](DEPLOY.md) — inclui o caso já resolvido de requisições `auth/register`/`login` travando por ~5min (export default quebrado em `db.js`).
 
-**Banco de dados corrompido**
-```bash
-# Remover banco (vai recrear)
-rm -rf data/
-npm run dev
-```
+## 📝 Histórico do projeto
+
+Ver [CHANGELOG.md](CHANGELOG.md) para o histórico de decisões e fases de implementação.
 
 ## 📄 Licença
 
 MIT
-
-## 💬 Suporte
-
-Dúvidas? Crie uma issue no repositório.
-
----
-
-**Desenvolvido com ❤️ para otimizar custos de APIs**
