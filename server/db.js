@@ -102,8 +102,6 @@ initializeDb();
 
 function initializeTables() {
   if (!db) return;
-
-  db.serialize?.(() => {
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -210,7 +208,6 @@ function initializeTables() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
-  });
 }
 
 export default db || { run: () => {}, all: () => {}, get: () => {}, serialize: (fn) => fn() };
