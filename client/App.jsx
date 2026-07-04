@@ -46,7 +46,12 @@ export default function App() {
 
   // Setup WebSocket
   const setupWebSocket = () => {
-    const socket = io(window.location.origin, {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    let wsUrl = window.location.origin;
+    if (apiUrl) {
+      wsUrl = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    }
+    const socket = io(wsUrl, {
       auth: { token },
     });
 
