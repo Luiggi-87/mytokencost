@@ -34,19 +34,28 @@ async function initializeDb() {
         connectionString: databaseUrl,
       });
 
+      // Converter ? para $1, $2, $3 (PostgreSQL format)
+      const convertQuery = (sql) => {
+        let counter = 1;
+        return sql.replace(/\?/g, () => `$${counter++}`);
+      };
+
       db = {
         run: (sql, params = [], callback) => {
-          pool.query(sql, params, (err, result) => {
+          const convertedSql = convertQuery(sql);
+          pool.query(convertedSql, params, (err, result) => {
             if (callback) callback(err, result);
           });
         },
         all: (sql, params = [], callback) => {
-          pool.query(sql, params, (err, result) => {
+          const convertedSql = convertQuery(sql);
+          pool.query(convertedSql, params, (err, result) => {
             if (callback) callback(err, result?.rows || []);
           });
         },
         get: (sql, params = [], callback) => {
-          pool.query(sql, params, (err, result) => {
+          const convertedSql = convertQuery(sql);
+          pool.query(convertedSql, params, (err, result) => {
             if (callback) callback(err, result?.rows?.[0]);
           });
         },
