@@ -5,7 +5,7 @@
  * Checks API health, database connectivity, and response times
  */
 
-const https = require('https');
+import https from 'https';
 
 const BACKEND_URL = 'https://mytokencost-production.up.railway.app';
 const ALERTS = {
