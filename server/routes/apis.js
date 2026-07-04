@@ -1,6 +1,6 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import db from '../db.js';
+import db, { dbRun, dbGet, dbAll } from '../db.js';
 import { authMiddleware } from '../auth.js';
 
 const router = express.Router();
@@ -20,11 +20,13 @@ const API_TYPES = {
 };
 
 // GET todas as APIs do usuário
-router.get('/', (req, res) => {
-  db.all('SELECT * FROM apis WHERE user_id = ? ORDER BY created_at DESC', [req.userId], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.get('/', async (req, res) => {
+  try {
+    const rows = await dbAll('SELECT * FROM apis WHERE user_id = ? ORDER BY created_at DESC', [req.userId]);
     res.json(rows || []);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET tipos de API disponíveis
@@ -33,23 +35,25 @@ router.get('/types', (req, res) => {
 });
 
 // POST nova API
-router.post('/', (req, res) => {
-  const { name, type, api_key, base_url, pricing_model, unit_cost } = req.body;
+router.post('/', async (req, res) => {
+  try {
+    const { name, type, api_key, base_url, pricing_model, unit_cost } = req.body;
 
-  if (!name || !type) {
-    return res.status(400).json({ error: 'Nome e tipo são obrigatórios' });
-  }
+    if (!name || !type) {
+      return res.status(400).json({ error: 'Nome e tipo são obrigatórios' });
+    }
 
-  const id = uuidv4();
-  const sql = `
-    INSERT INTO apis (id, user_id, name, type, api_key, base_url, pricing_model, unit_cost)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+    const id = uuidv4();
+    const sql = `
+      INSERT INTO apis (id, user_id, name, type, api_key, base_url, pricing_model, unit_cost)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-  db.run(sql, [id, req.userId, name, type, api_key || null, base_url || null, pricing_model, unit_cost || 0], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+    await dbRun(sql, [id, req.userId, name, type, api_key || null, base_url || null, pricing_model, unit_cost || 0]);
     res.status(201).json({ id, name, type, pricing_model, unit_cost });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // PUT atualizar API
