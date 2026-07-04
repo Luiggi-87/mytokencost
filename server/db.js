@@ -41,6 +41,9 @@ async function initializeDb() {
         sql = sql.replace(/\?/g, () => `$${counter++}`);
         // Converter DATETIME para TIMESTAMP
         sql = sql.replace(/DATETIME/gi, 'TIMESTAMP');
+        // Converter DEFAULT 1 e DEFAULT 0 para boolean
+        sql = sql.replace(/DEFAULT\s+1(?=\s|,|[)']|$)/gi, 'DEFAULT TRUE');
+        sql = sql.replace(/DEFAULT\s+0(?=\s|,|[)']|$)/gi, 'DEFAULT FALSE');
         return sql;
       };
 
