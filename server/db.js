@@ -52,7 +52,15 @@ async function actuallyInitializeDb() {
         connectionString: databaseUrl,
         max: 20,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
+        connectionTimeoutMillis: 5000,
+        statement_timeout: 8000,
+        query_timeout: 8000,
+        keepAlive: true,
+      });
+
+      // Evitar que erros de conexão idle derrubem o processo
+      pool.on('error', (err) => {
+        console.error('❌ Erro inesperado no pool PostgreSQL:', err.message);
       });
 
       // Converter SQLite para PostgreSQL format
