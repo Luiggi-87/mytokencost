@@ -25,65 +25,79 @@ export const verifyToken = (token) => {
   }
 };
 
-export const registerUser = async (email, password, organizationName) => {
-  try {
-    await dbReady;
-    const id = uuidv4();
-    const passwordHash = await hashPassword(password);
+export const registerUser = (email, password, organizationName) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const id = uuidv4();
+      const passwordHash = await hashPassword(password);
 
-    console.log('📝 Registrando usuário:', email);
-    await db.pool.query(
-      `INSERT INTO users (id, email, password_hash, organization_name, created_at)
-       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
-      [id, email, passwordHash, organizationName || email.split("@")[0]]
-    );
-
-    console.log('✅ Usuário registrado:', email);
-    return { id, email, organizationName };
-  } catch (err) {
-    console.error('❌ Erro no registro:', err.message);
-    throw err;
-  }
+      console.log('📝 Registrando usuário:', email);
+      db.run(
+        `INSERT INTO users (id, email, password_hash, organization_name, created_at)
+         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        [id, email, passwordHash, organizationName || email.split("@")[0]],
+        (err) => {
+          if (err) {
+            console.error('❌ Erro no registro:', err.message);
+            reject(err);
+          } else {
+            console.log('✅ Usuário registrado:', email);
+            resolve({ id, email, organizationName });
+          }
+        }
+      );
+    } catch (err) {
+      console.error('❌ Erro no registro:', err.message);
+      reject(err);
+    }
+  });
 };
 
-export const loginUser = async (email, password) => {
-  console.log('🔐 loginUser chamado para:', email);
-  try {
-    await dbReady;
+export const loginUser = (email, password) => {
+  return new Promise((resolve, reject) => {
+    console.log('🔐 loginUser chamado para:', email);
     console.log('🔍 Consultando usuário...');
-    // Use the raw pool for direct async/await
-    const result = await db.pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    const user = result.rows?.[0];
 
-    console.log('✓ Query executada. User encontrado:', !!user);
+    db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
+      if (err) {
+        console.error('❌ Erro no login:', err.message);
+        return reject(err);
+      }
 
-    if (!user) {
-      throw new Error("Usuário não encontrado");
-    }
+      if (!user) {
+        console.warn('⚠️ Usuário não encontrado:', email);
+        return reject(new Error("Usuário não encontrado"));
+      }
 
-    const valid = await comparePassword(password, user.password_hash);
-    if (!valid) {
-      throw new Error("Senha incorreta");
-    }
+      try {
+        const valid = await comparePassword(password, user.password_hash);
+        if (!valid) {
+          console.warn('⚠️ Senha incorreta para:', email);
+          return reject(new Error("Senha incorreta"));
+        }
 
-    console.log('✅ Login bem-sucedido para:', email);
-    const token = generateToken(user.id);
-    return { user: { id: user.id, email: user.email, organization: user.organization_name }, token };
-  } catch (err) {
-    console.error('❌ Erro no login:', err.message);
-    throw err;
-  }
+        console.log('✅ Login bem-sucedido para:', email);
+        const token = generateToken(user.id);
+        resolve({ user: { id: user.id, email: user.email, organization: user.organization_name }, token });
+      } catch (err) {
+        console.error('❌ Erro na comparação de senha:', err.message);
+        reject(err);
+      }
+    });
+  });
 };
 
-export const getUserById = async (userId) => {
-  try {
-    await dbReady;
-    const result = await db.pool.query("SELECT id, email, organization_name, created_at FROM users WHERE id = $1", [userId]);
-    return result.rows?.[0];
-  } catch (err) {
-    console.error('❌ Erro ao buscar usuário:', err.message);
-    throw err;
-  }
+export const getUserById = (userId) => {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT id, email, organization_name, created_at FROM users WHERE id = ?", [userId], (err, user) => {
+      if (err) {
+        console.error('❌ Erro ao buscar usuário:', err.message);
+        reject(err);
+      } else {
+        resolve(user);
+      }
+    });
+  });
 };
 
 export const authMiddleware = (req, res, next) => {
