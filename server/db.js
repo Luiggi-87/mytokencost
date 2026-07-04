@@ -69,21 +69,42 @@ async function actuallyInitializeDb() {
         run: (sql, params = [], callback) => {
           const convertedSql = convertQuery(sql);
           console.log('🔍 DB RUN:', convertedSql.substring(0, 50) + '...');
+
+          if (!callback) callback = () => {}; // Evitar erro se callback for undefined
+
           pool.query(convertedSql, params, (err, result) => {
-            if (err) console.error('❌ DB ERROR:', err.message);
-            if (callback) callback(err, result);
+            if (err) {
+              console.error('❌ DB ERROR:', err.message);
+              return callback(err, null);
+            }
+            console.log('✓ Query executada com sucesso');
+            callback(null, result);
           });
         },
         all: (sql, params = [], callback) => {
           const convertedSql = convertQuery(sql);
+
+          if (!callback) callback = () => {};
+
           pool.query(convertedSql, params, (err, result) => {
-            if (callback) callback(err, result?.rows || []);
+            if (err) {
+              console.error('❌ DB ERROR:', err.message);
+              return callback(err, []);
+            }
+            callback(null, result?.rows || []);
           });
         },
         get: (sql, params = [], callback) => {
           const convertedSql = convertQuery(sql);
+
+          if (!callback) callback = () => {};
+
           pool.query(convertedSql, params, (err, result) => {
-            if (callback) callback(err, result?.rows?.[0]);
+            if (err) {
+              console.error('❌ DB ERROR:', err.message);
+              return callback(err, null);
+            }
+            callback(null, result?.rows?.[0]);
           });
         },
         serialize: (fn) => fn(),
