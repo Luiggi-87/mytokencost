@@ -20,27 +20,32 @@ export class CountedOpenAI extends OpenAI {
 
     this.projectId = options.projectId || "unknown";
     this.apiId = options.apiId || "openai-gpt";
+    this.token = options.token;
     this.backendUrl = options.backendUrl || "http://localhost:3001";
     this.debug = options.debug || false;
-  }
 
-  async chat.completions.create(params) {
-    if (this.debug) {
-      console.log("[CountedOpenAI] Creating completion:", {
-        model: params.model,
-        project: this.projectId,
-      });
-    }
+    // this.chat.completions.create é um método de instância do SDK oficial,
+    // não um método de classe — precisa ser envolvido em runtime, não
+    // sobrescrito via "async chat.completions.create() {}" (erro de sintaxe).
+    const originalCreate = this.chat.completions.create.bind(this.chat.completions);
+    this.chat.completions.create = async (params) => {
+      if (this.debug) {
+        console.log("[CountedOpenAI] Creating completion:", {
+          model: params.model,
+          project: this.projectId,
+        });
+      }
 
-    const response = await super.chat.completions.create(params);
+      const response = await originalCreate(params);
 
-    try {
-      await this._recordCost(response, params);
-    } catch (error) {
-      console.error("[CountedOpenAI] Error recording cost:", error.message);
-    }
+      try {
+        await this._recordCost(response, params);
+      } catch (error) {
+        console.error("[CountedOpenAI] Error recording cost:", error.message);
+      }
 
-    return response;
+      return response;
+    };
   }
 
   async _recordCost(response, params) {
@@ -67,7 +72,10 @@ export class CountedOpenAI extends OpenAI {
 
     const response_register = await fetch(`${this.backendUrl}/api/costs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      },
       body: JSON.stringify({
         project_id: this.projectId,
         api_id: this.apiId,
@@ -85,7 +93,7 @@ export class CountedOpenAI extends OpenAI {
     }
 
     if (this.debug) {
-      console.log("[CountedOpenAI] ✅ Cost recorded successfully");
+      console.log("[CountedOpenAI] Cost recorded successfully");
     }
   }
 }

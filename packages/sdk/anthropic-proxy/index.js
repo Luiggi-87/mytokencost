@@ -4,13 +4,14 @@ import Anthropic from "@anthropic-ai/sdk";
  * Contador de Tokens - Anthropic Proxy SDK
  *
  * Wrapper do Anthropic Claude que automaticamente rastreia custos
- * e registra no dashboard Contador de Tokens
+ * e registra no dashboard MyTokenCost
  *
  * Uso:
  * import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
  *
  * const client = new CountedAnthropic({
  *   apiKey: process.env.ANTHROPIC_KEY,
+ *   token: process.env.MYTOKENCOST_TOKEN, // JWT retornado pelo login/register
  *   projectId: 'meu-projeto',
  *   backendUrl: 'http://localhost:3001'
  * });
@@ -32,30 +33,33 @@ export class CountedAnthropic extends Anthropic {
 
     this.projectId = options.projectId || "unknown";
     this.apiId = options.apiId || "anthropic-claude";
+    this.token = options.token;
     this.backendUrl = options.backendUrl || "http://localhost:3001";
     this.debug = options.debug || false;
-  }
 
-  async messages.create(params) {
-    if (this.debug) {
-      console.log("[CountedAnthropic] Creating message:", {
-        model: params.model,
-        project: this.projectId,
-      });
-    }
+    // this.messages.create é um método de instância do SDK oficial, não um
+    // método de classe — precisa ser envolvido em runtime, não sobrescrito
+    // via "async messages.create() {}" (isso é um erro de sintaxe em JS).
+    const originalCreate = this.messages.create.bind(this.messages);
+    this.messages.create = async (params) => {
+      if (this.debug) {
+        console.log("[CountedAnthropic] Creating message:", {
+          model: params.model,
+          project: this.projectId,
+        });
+      }
 
-    // Chamar API original
-    const response = await super.messages.create(params);
+      const response = await originalCreate(params);
 
-    // Registrar custo
-    try {
-      await this._recordCost(response, params);
-    } catch (error) {
-      console.error("[CountedAnthropic] Erro ao registrar custo:", error.message);
-      // Não falha se não conseguir registrar (fail-open)
-    }
+      try {
+        await this._recordCost(response, params);
+      } catch (error) {
+        console.error("[CountedAnthropic] Erro ao registrar custo:", error.message);
+        // Não falha se não conseguir registrar (fail-open)
+      }
 
-    return response;
+      return response;
+    };
   }
 
   async _recordCost(response, params) {
@@ -84,7 +88,10 @@ export class CountedAnthropic extends Anthropic {
     // Enviar para backend
     const response_register = await fetch(`${this.backendUrl}/api/costs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      },
       body: JSON.stringify({
         project_id: this.projectId,
         api_id: this.apiId,
@@ -102,7 +109,7 @@ export class CountedAnthropic extends Anthropic {
     }
 
     if (this.debug) {
-      console.log("[CountedAnthropic] ✅ Cost recorded successfully");
+      console.log("[CountedAnthropic] Cost recorded successfully");
     }
   }
 }

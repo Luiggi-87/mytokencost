@@ -16,6 +16,7 @@ export class CountedGemini {
     this.client = new GoogleGenerativeAI(options.apiKey);
     this.projectId = options.projectId || "unknown";
     this.apiId = options.apiId || "google-gemini";
+    this.token = options.token;
     this.backendUrl = options.backendUrl || "http://localhost:3001";
     this.debug = options.debug || false;
   }
@@ -65,7 +66,10 @@ export class CountedGemini {
 
     const response_register = await fetch(`${this.backendUrl}/api/costs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      },
       body: JSON.stringify({
         project_id: this.projectId,
         api_id: this.apiId,
