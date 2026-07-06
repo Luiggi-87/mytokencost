@@ -4,7 +4,40 @@ Seu gerente criou uma chave de acesso pro seu projeto. Siga este guia pra regist
 
 ---
 
-## **Os 5 Dados que Você Precisa**
+## **OPÇÃO FÁCIL (Recomendado): Validar Chave do Provider Diretamente**
+
+Você **SÓ precisa de 1 valor**: sua chave do provedor (Anthropic, OpenAI, etc).
+
+### 1. Descubra suas informações
+```bash
+curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+  -H "Content-Type: application/json" \
+  -d '{"provider_key": "sk-ant-xxxxx"}'
+```
+
+Retorna:
+```json
+{
+  "provider": "anthropic",
+  "name": "Anthropic Claude",
+  "is_valid": true,
+  "models": ["claude-3-5-sonnet-20241022", "claude-3-opus-20250219"],
+  "usage": {
+    "test_input_tokens": 5,
+    "test_output_tokens": 2,
+    "test_total_cost": 0.000015
+  }
+}
+```
+
+### 2. Use diretamente no seu código
+Pega a resposta e usa:
+- `provider_key` = sua chave
+- `backend_url` = `https://mytokencost.up.railway.app`
+
+---
+
+## **OPÇÃO TRADICIONAL: Os 5 Dados que Você Precisa** (se seu gerente preferir)
 
 Seu gerente vai fornecer:
 1. **MYTOKENCOST_TOKEN** — JWT de acesso
@@ -24,7 +57,43 @@ BACKEND_URL=https://mytokencost.up.railway.app
 
 ---
 
-## **Node.js (JavaScript/TypeScript)**
+## **Exemplos Rápidos (Opção Fácil)**
+
+### Node.js
+```javascript
+const response = await fetch('https://mytokencost.up.railway.app/api/integrations/validate-key', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ provider_key: process.env.ANTHROPIC_KEY })
+});
+
+const data = await response.json();
+console.log(data.provider, data.models);
+// → anthropic ["claude-3-5-sonnet-20241022", ...]
+```
+
+### Python
+```python
+import requests
+
+resp = requests.post(
+  'https://mytokencost.up.railway.app/api/integrations/validate-key',
+  json={'provider_key': os.getenv('ANTHROPIC_KEY')}
+)
+data = resp.json()
+print(data['provider'], data['models'])
+```
+
+### cURL
+```bash
+curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+  -H "Content-Type: application/json" \
+  -d '{"provider_key":"sk-ant-xxxxx"}'
+```
+
+---
+
+## **Node.js (JavaScript/TypeScript) - Opção Completa**
 
 ### 1. Instale o SDK
 ```bash
