@@ -15,15 +15,24 @@ const API_TYPES = {
   other: 'Outro'
 };
 
+// Mapeamento entre o tipo da UI (anthropic) e o ID da tabela prices.json
+const PRICING_PROVIDER_MAP = {
+  anthropic: 'anthropic-claude',
+  openai: 'openai-gpt',
+  google: 'google-gemini'
+};
+
 export default function ApiManager({ token, onSave }) {
   const [apis, setApis] = useState([]);
+  const [models, setModels] = useState({});
   const [form, setForm] = useState({
     name: '',
     type: 'anthropic',
     api_key: '',
     base_url: '',
     pricing_model: 'por_token',
-    unit_cost: 0
+    unit_cost: 0,
+    model: ''
   });
   const [editing, setEditing] = useState(null);
 
@@ -40,6 +49,34 @@ export default function ApiManager({ token, onSave }) {
     } catch (error) {
       console.error('Erro:', error);
     }
+  };
+
+  const handleTypeChange = async (type) => {
+    setForm({ ...form, type, model: '', unit_cost: 0 });
+
+    const provider = PRICING_PROVIDER_MAP[type];
+    if (!provider) return;
+
+    try {
+      const res = await fetch(`/api/apis/pricing/${provider}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const pricing = await res.json();
+        setModels(prev => ({ ...prev, [type]: pricing.models || {} }));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar preços:', error);
+    }
+  };
+
+  const handleModelChange = (modelName) => {
+    const provider = PRICING_PROVIDER_MAP[form.type];
+    if (!provider || !models[form.type]?.[modelName]) return;
+
+    const model = models[form.type][modelName];
+    const avgCost = (model.input + model.output) / 2;
+    setForm({ ...form, model: modelName, unit_cost: avgCost });
   };
 
   const handleSubmit = async (e) => {
@@ -96,7 +133,8 @@ export default function ApiManager({ token, onSave }) {
       api_key: '',
       base_url: '',
       pricing_model: 'por_token',
-      unit_cost: 0
+      unit_cost: 0,
+      model: ''
     });
     setEditing(null);
   };
@@ -116,12 +154,26 @@ export default function ApiManager({ token, onSave }) {
 
           <select
             value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            onChange={(e) => handleTypeChange(e.target.value)}
           >
             {Object.entries(API_TYPES).map(([key, label]) => (
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
+
+          {models[form.type] && Object.keys(models[form.type]).length > 0 && (
+            <select
+              value={form.model}
+              onChange={(e) => handleModelChange(e.target.value)}
+            >
+              <option value="">Selecionar modelo...</option>
+              {Object.entries(models[form.type]).map(([modelName, pricing]) => (
+                <option key={modelName} value={modelName}>
+                  {modelName} (média: R$ {((pricing.input + pricing.output) / 2).toFixed(6)})
+                </option>
+              ))}
+            </select>
+          )}
 
           <input
             type="password"
@@ -187,7 +239,7 @@ export default function ApiManager({ token, onSave }) {
                 <tr key={api.id}>
                   <td>{api.name}</td>
                   <td>{api.type}</td>
-                  <td>{api.pricing_model}</td>
+                  <td>{api.model || api.pricing_model}</td>
                   <td>R$ {api.unit_cost?.toFixed(5)}</td>
                   <td className="actions">
                     <button className="btn-edit" onClick={() => handleEdit(api)} aria-label="Editar"><IconEdit /></button>

@@ -1,0 +1,28 @@
+{
+  "anthropic-claude": {
+    "name": "Anthropic Claude",
+    "models": {
+      "claude-3-5-sonnet-20241022": { "input": 0.000003, "output": 0.000015 },
+      "claude-3-opus-20250219": { "input": 0.000015, "output": 0.00075 },
+      "claude-3-haiku-20240307": { "input": 0.00000080, "output": 0.000004 },
+      "claude-3-sonnet-20240229": { "input": 0.000003, "output": 0.000015 }
+    }
+  },
+  "openai-gpt": {
+    "name": "OpenAI GPT",
+    "models": {
+      "gpt-4": { "input": 0.00003, "output": 0.00006 },
+      "gpt-4-turbo": { "input": 0.00001, "output": 0.00003 },
+      "gpt-3.5-turbo": { "input": 0.0000005, "output": 0.0000015 },
+      "gpt-3.5-turbo-16k": { "input": 0.000003, "output": 0.000004 }
+    }
+  },
+  "google-gemini": {
+    "name": "Google Gemini",
+    "models": {
+      "gemini-1.5-pro": { "input": 0.00000175, "output": 0.0000070 },
+      "gemini-1.5-flash": { "input": 0.000000075, "output": 0.00000030 },
+      "gemini-pro": { "input": 0.0000005, "output": 0.0000015 }
+    }
+  }
+}

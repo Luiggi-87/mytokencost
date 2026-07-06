@@ -2,6 +2,14 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { dbRun, dbGet, dbAll } from '../db.js';
 import { authMiddleware } from '../auth.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const pricesPath = path.join(__dirname, '..', 'prices.json');
+const prices = JSON.parse(fs.readFileSync(pricesPath, 'utf-8'));
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -34,10 +42,19 @@ router.get('/types', (req, res) => {
   res.json(API_TYPES);
 });
 
+// GET preços de um provedor (modelos e seus custos)
+router.get('/pricing/:provider', (req, res) => {
+  const provider = req.params.provider;
+  if (!prices[provider]) {
+    return res.status(404).json({ error: `Provedor não encontrado: ${provider}` });
+  }
+  res.json(prices[provider]);
+});
+
 // POST nova API
 router.post('/', async (req, res) => {
   try {
-    const { name, type, api_key, base_url, pricing_model, unit_cost } = req.body;
+    const { name, type, api_key, base_url, pricing_model, unit_cost, model } = req.body;
 
     if (!name || !type) {
       return res.status(400).json({ error: 'Nome e tipo são obrigatórios' });
@@ -45,12 +62,12 @@ router.post('/', async (req, res) => {
 
     const id = uuidv4();
     const sql = `
-      INSERT INTO apis (id, user_id, name, type, api_key, base_url, pricing_model, unit_cost)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO apis (id, user_id, name, type, api_key, base_url, pricing_model, unit_cost, model)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    await dbRun(sql, [id, req.userId, name, type, api_key || null, base_url || null, pricing_model, unit_cost || 0]);
-    res.status(201).json({ id, name, type, pricing_model, unit_cost });
+    await dbRun(sql, [id, req.userId, name, type, api_key || null, base_url || null, pricing_model, unit_cost || 0, model || null]);
+    res.status(201).json({ id, name, type, pricing_model, unit_cost, model });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -59,16 +76,16 @@ router.post('/', async (req, res) => {
 // PUT atualizar API
 router.put('/:id', async (req, res) => {
   try {
-    const { name, type, api_key, base_url, pricing_model, unit_cost } = req.body;
+    const { name, type, api_key, base_url, pricing_model, unit_cost, model } = req.body;
     const { id } = req.params;
 
     const sql = `
       UPDATE apis
-      SET name = ?, type = ?, api_key = ?, base_url = ?, pricing_model = ?, unit_cost = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, type = ?, api_key = ?, base_url = ?, pricing_model = ?, unit_cost = ?, model = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND user_id = ?
     `;
 
-    await dbRun(sql, [name, type, api_key, base_url, pricing_model, unit_cost, id, req.userId]);
+    await dbRun(sql, [name, type, api_key, base_url, pricing_model, unit_cost, model || null, id, req.userId]);
     res.json({ id, name, type, updated_at: new Date() });
   } catch (err) {
     res.status(500).json({ error: err.message });
