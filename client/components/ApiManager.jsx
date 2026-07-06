@@ -242,6 +242,7 @@ export default function ApiManager({ token, onSave }) {
             <thead>
               <tr>
                 <th>Nome</th>
+                <th>ID (copiar para código)</th>
                 <th>Tipo</th>
                 <th>Modelo</th>
                 <th>Custo</th>
@@ -252,6 +253,9 @@ export default function ApiManager({ token, onSave }) {
               {apis.map((api) => (
                 <tr key={api.id}>
                   <td>{api.name}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.85em', cursor: 'pointer' }} onClick={() => { navigator.clipboard.writeText(api.id); alert('ID copiado!'); }} title="Clique para copiar">
+                    {api.id.substring(0, 8)}...
+                  </td>
                   <td>{api.type}</td>
                   <td>{api.model || api.pricing_model}</td>
                   <td>R$ {api.unit_cost?.toFixed(5)}</td>

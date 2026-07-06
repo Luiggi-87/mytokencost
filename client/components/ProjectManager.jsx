@@ -139,6 +139,7 @@ export default function ProjectManager({ token, onSave }) {
             <thead>
               <tr>
                 <th>Projeto</th>
+                <th>ID (copiar para código)</th>
                 <th>Cliente</th>
                 <th>Taxa Mensal</th>
                 <th>Ações</th>
@@ -148,6 +149,9 @@ export default function ProjectManager({ token, onSave }) {
               {projects.map((project) => (
                 <tr key={project.id}>
                   <td><strong>{project.name}</strong></td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.85em', cursor: 'pointer' }} onClick={() => { navigator.clipboard.writeText(project.id); alert('ID copiado!'); }} title="Clique para copiar">
+                    {project.id.substring(0, 8)}...
+                  </td>
                   <td>{project.client_name || '-'}</td>
                   <td>R$ {project.monthly_rate?.toFixed(2)}</td>
                   <td className="actions">
