@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Manager.css";
+import { IconTrash, IconWebhook } from "./Icons";
 
 export default function WebhooksManager({ token }) {
   const [webhooks, setWebhooks] = useState([]);
@@ -64,7 +65,7 @@ export default function WebhooksManager({ token }) {
   return (
     <div className="manager">
       <div className="manager-form">
-        <h2>🔗 Novo Webhook</h2>
+        <h2><IconWebhook /> Novo webhook</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="url"
@@ -90,7 +91,7 @@ export default function WebhooksManager({ token }) {
       </div>
 
       <div className="manager-list">
-        <h2>📋 Webhooks Configurados</h2>
+        <h2><IconWebhook /> Webhooks configurados</h2>
         {webhooks.length > 0 ? (
           <table>
             <thead>
@@ -109,8 +110,9 @@ export default function WebhooksManager({ token }) {
                     <button
                       className="btn-delete"
                       onClick={() => handleDelete(webhook.id)}
+                      aria-label="Excluir"
                     >
-                      🗑️
+                      <IconTrash />
                     </button>
                   </td>
                 </tr>

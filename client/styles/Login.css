@@ -3,21 +3,29 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: var(--bg);
 }
 
 .login-card {
   background: var(--bg-light);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   padding: 2rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.login-logo {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  border-radius: 0.65rem;
 }
 
 .login-card h1 {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
+  font-weight: 500;
   margin-bottom: 0.5rem;
   color: var(--text);
   text-align: center;
@@ -63,24 +71,22 @@
 .form-group select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
 }
 
 .error-message {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(227, 90, 90, 0.1);
   color: var(--danger);
   padding: 0.75rem;
   border-radius: 0.5rem;
-  border-left: 3px solid var(--danger);
   font-size: 0.9rem;
 }
 
 .info-message {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  background: rgba(34, 193, 122, 0.1);
+  color: var(--success);
   padding: 0.75rem;
   border-radius: 0.5rem;
-  border-left: 3px solid #22c55e;
   font-size: 0.9rem;
 }
 

@@ -7,7 +7,28 @@ import CostTracker from "./components/CostTracker";
 import WebhooksManager from "./components/WebhooksManager";
 import AlertsManager from "./components/AlertsManager";
 import Login from "./components/Login";
+import { getInitialTheme, applyTheme } from "./theme";
+import {
+  IconBell,
+  IconCoin,
+  IconDashboard,
+  IconFolder,
+  IconLogout,
+  IconMoon,
+  IconPlug,
+  IconSun,
+  IconWebhook,
+} from "./components/Icons";
 import "./App.css";
+
+const NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", icon: IconDashboard },
+  { key: "costs", label: "Custos", icon: IconCoin },
+  { key: "projects", label: "Projetos", icon: IconFolder },
+  { key: "apis", label: "APIs", icon: IconPlug },
+  { key: "webhooks", label: "Webhooks", icon: IconWebhook },
+  { key: "alerts", label: "Alertas", icon: IconBell },
+];
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -16,6 +37,7 @@ export default function App() {
   const [stats, setStats] = useState(null);
   const [ws, setWs] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [theme, setTheme] = useState(getInitialTheme());
 
   // Setup token e usuário ao iniciar
   useEffect(() => {
@@ -24,6 +46,12 @@ export default function App() {
       setupWebSocket();
     }
   }, [token]);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    applyTheme(next);
+  };
 
   // Validar token
   const validateToken = async () => {
@@ -56,22 +84,20 @@ export default function App() {
     });
 
     socket.on("connect", () => {
-      console.log("✅ WebSocket conectado");
+      console.log("WebSocket conectado");
     });
 
     socket.on("cost-recorded", (data) => {
-      console.log("💰 Custo registrado:", data);
       fetchStats();
-      showNotification(`✅ Custo de R$ ${data.amount?.toFixed(2)} registrado!`);
+      showNotification(`Custo de R$ ${data.amount?.toFixed(2)} registrado`);
     });
 
     socket.on("alert-triggered", (data) => {
-      console.log("⚠️ Alerta disparado:", data);
-      showNotification(`⚠️ Alerta: ${data.message}`);
+      showNotification(`Alerta: ${data.message}`);
     });
 
     socket.on("disconnect", () => {
-      console.log("❌ WebSocket desconectado");
+      console.log("WebSocket desconectado");
     });
 
     setWs(socket);
@@ -129,85 +155,76 @@ export default function App() {
     return <Login onLogin={handleLogin} />;
   }
 
+  const activeLabel = NAV_ITEMS.find((item) => item.key === activeTab)?.label;
+
   return (
     <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>💰 MyTokenCost</h1>
-          <p>Real-time API Cost Management - {user.organization}</p>
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <img src="/logo.svg" alt="" className="brand-logo" />
+          <span>MyTokenCost</span>
         </div>
-        {stats && (
-          <div className="header-stats">
-            <div className="stat">
-              <span>Total Gasto</span>
-              <strong>R$ {stats.total?.toFixed(2)}</strong>
-            </div>
-            <div className="stat">
-              <span>Usuário</span>
-              <strong>{user.email}</strong>
-            </div>
+
+        <nav className="sidebar-nav">
+          {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              className={`nav-item ${activeTab === key ? "active" : ""}`}
+              onClick={() => setActiveTab(key)}
+            >
+              <Icon />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+        >
+          {theme === "dark" ? <IconSun /> : <IconMoon />}
+          {theme === "dark" ? "Tema claro" : "Tema escuro"}
+        </button>
+      </aside>
+
+      <div className="app-body">
+        <header className="topbar">
+          <div className="topbar-title">{activeLabel}</div>
+          <div className="topbar-right">
+            {stats && (
+              <div className="topbar-stat">
+                <span>Total gasto</span>
+                <strong>R$ {stats.total?.toFixed(2)}</strong>
+              </div>
+            )}
+            <span className="topbar-user">{user.organization || user.email}</span>
+            <button className="btn-logout" onClick={logout} aria-label="Sair">
+              <IconLogout />
+            </button>
           </div>
-        )}
-        <button className="btn-logout" onClick={logout}>
-          Logout
-        </button>
-      </header>
+        </header>
 
-      <nav className="app-nav">
-        <button
-          className={`nav-btn ${activeTab === "dashboard" ? "active" : ""}`}
-          onClick={() => setActiveTab("dashboard")}
-        >
-          📊 Dashboard
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "costs" ? "active" : ""}`}
-          onClick={() => setActiveTab("costs")}
-        >
-          💸 Custos
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "projects" ? "active" : ""}`}
-          onClick={() => setActiveTab("projects")}
-        >
-          📁 Projetos
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "apis" ? "active" : ""}`}
-          onClick={() => setActiveTab("apis")}
-        >
-          🔌 APIs
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "webhooks" ? "active" : ""}`}
-          onClick={() => setActiveTab("webhooks")}
-        >
-          🔗 Webhooks
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "alerts" ? "active" : ""}`}
-          onClick={() => setActiveTab("alerts")}
-        >
-          🚨 Alertas
-        </button>
-      </nav>
+        <main className="app-main">
+          {activeTab === "dashboard" && (
+            <Dashboard stats={stats} onRefresh={handleRefresh} token={token} />
+          )}
+          {activeTab === "costs" && (
+            <CostTracker token={token} onSave={handleRefresh} />
+          )}
+          {activeTab === "projects" && (
+            <ProjectManager token={token} onSave={handleRefresh} />
+          )}
+          {activeTab === "apis" && <ApiManager token={token} onSave={handleRefresh} />}
+          {activeTab === "webhooks" && <WebhooksManager token={token} />}
+          {activeTab === "alerts" && <AlertsManager token={token} />}
+        </main>
 
-      <main className="app-main">
-        {activeTab === "dashboard" && (
-          <Dashboard stats={stats} onRefresh={handleRefresh} token={token} />
-        )}
-        {activeTab === "costs" && (
-          <CostTracker token={token} onSave={handleRefresh} />
-        )}
-        {activeTab === "projects" && (
-          <ProjectManager token={token} onSave={handleRefresh} />
-        )}
-        {activeTab === "apis" && <ApiManager token={token} onSave={handleRefresh} />}
-        {activeTab === "webhooks" && <WebhooksManager token={token} />}
-        {activeTab === "alerts" && <AlertsManager token={token} />}
-      </main>
+        <footer className="app-footer">
+          <p>© 2026 MyTokenCost</p>
+        </footer>
+      </div>
 
-      {/* Notificações */}
       <div className="notifications">
         {notifications.map((notif) => (
           <div key={notif.id} className="notification">
@@ -215,10 +232,6 @@ export default function App() {
           </div>
         ))}
       </div>
-
-      <footer className="app-footer">
-        <p>© 2024 MyTokenCost - Real-time API Cost Management Dashboard</p>
-      </footer>
     </div>
   );
 }

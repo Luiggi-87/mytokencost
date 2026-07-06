@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Manager.css';
+import { IconCoin, IconDashboard, IconTrash } from './Icons';
 
 export default function CostTracker({ token, onSave }) {
   const [costs, setCosts] = useState([]);
@@ -85,7 +86,7 @@ export default function CostTracker({ token, onSave }) {
   return (
     <div className="manager">
       <div className="manager-form">
-        <h2>💸 Registrar Custo</h2>
+        <h2><IconCoin /> Registrar custo</h2>
         <form onSubmit={handleSubmit}>
           <select
             value={form.project_id}
@@ -150,7 +151,7 @@ export default function CostTracker({ token, onSave }) {
       </div>
 
       <div className="manager-list">
-        <h2>📊 Histórico de Custos</h2>
+        <h2><IconDashboard /> Histórico de custos</h2>
         {costs.length > 0 ? (
           <table>
             <thead>
@@ -172,7 +173,7 @@ export default function CostTracker({ token, onSave }) {
                   <td>{cost.units} {cost.unit_type}</td>
                   <td><strong>R$ {cost.amount?.toFixed(2)}</strong></td>
                   <td>
-                    <button className="btn-delete" onClick={() => handleDelete(cost.id)}>🗑️</button>
+                    <button className="btn-delete" onClick={() => handleDelete(cost.id)} aria-label="Excluir"><IconTrash /></button>
                   </td>
                 </tr>
               ))}

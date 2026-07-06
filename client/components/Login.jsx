@@ -79,8 +79,9 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1>💰 MyTokenCost</h1>
-        <p>Real-time API Cost Management</p>
+        <img src="/logo.svg" alt="MyTokenCost" className="login-logo" />
+        <h1>MyTokenCost</h1>
+        <p>Real-time API cost management</p>
 
         {mode === "reset" && (
           <p style={{ textAlign: "center", color: "var(--text-muted)", marginTop: "-1rem", marginBottom: "1.5rem" }}>

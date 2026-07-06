@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Manager.css';
+import { IconEdit, IconFolder, IconPlus, IconTrash } from './Icons';
 
 export default function ProjectManager({ token, onSave }) {
   const [projects, setProjects] = useState([]);
@@ -86,7 +87,7 @@ export default function ProjectManager({ token, onSave }) {
   return (
     <div className="manager">
       <div className="manager-form">
-        <h2>{editing ? '✏️ Editar Projeto' : '➕ Novo Projeto'}</h2>
+        <h2>{editing ? <><IconEdit /> Editar projeto</> : <><IconPlus /> Novo projeto</>}</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -132,7 +133,7 @@ export default function ProjectManager({ token, onSave }) {
       </div>
 
       <div className="manager-list">
-        <h2>📁 Projetos</h2>
+        <h2><IconFolder /> Projetos</h2>
         {projects.length > 0 ? (
           <table>
             <thead>
@@ -150,8 +151,8 @@ export default function ProjectManager({ token, onSave }) {
                   <td>{project.client_name || '-'}</td>
                   <td>R$ {project.monthly_rate?.toFixed(2)}</td>
                   <td className="actions">
-                    <button className="btn-edit" onClick={() => handleEdit(project)}>✏️</button>
-                    <button className="btn-delete" onClick={() => handleDelete(project.id)}>🗑️</button>
+                    <button className="btn-edit" onClick={() => handleEdit(project)} aria-label="Editar"><IconEdit /></button>
+                    <button className="btn-delete" onClick={() => handleDelete(project.id)} aria-label="Excluir"><IconTrash /></button>
                   </td>
                 </tr>
               ))}

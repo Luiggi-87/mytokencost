@@ -1,5 +1,6 @@
 import React from 'react';
 import '../styles/Dashboard.css';
+import { IconCoin, IconDashboard, IconFolder, IconRefresh } from './Icons';
 
 export default function Dashboard({ stats, onRefresh, token }) {
   if (!stats) return <div className="loading">Carregando...</div>;
@@ -8,12 +9,12 @@ export default function Dashboard({ stats, onRefresh, token }) {
     <div className="dashboard">
       <div className="dashboard-grid">
         <div className="card card-total">
-          <h3>💰 Total Gasto</h3>
+          <h3><IconCoin /> Total gasto</h3>
           <div className="amount">R$ {stats.total?.toFixed(2)}</div>
         </div>
 
         <div className="card">
-          <h3>📊 Por API</h3>
+          <h3><IconDashboard /> Por API</h3>
           <div className="list">
             {stats.byApi?.length > 0 ? (
               stats.byApi.map((api) => (
@@ -29,7 +30,7 @@ export default function Dashboard({ stats, onRefresh, token }) {
         </div>
 
         <div className="card">
-          <h3>📁 Por Projeto</h3>
+          <h3><IconFolder /> Por projeto</h3>
           <div className="list">
             {stats.byProject?.length > 0 ? (
               stats.byProject.map((project) => (
@@ -51,7 +52,7 @@ export default function Dashboard({ stats, onRefresh, token }) {
       </div>
 
       <button className="btn-refresh" onClick={onRefresh}>
-        🔄 Atualizar
+        <IconRefresh /> Atualizar
       </button>
     </div>
   );

@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Manager.css';
+import { IconEdit, IconPlug, IconPlus, IconTrash } from './Icons';
 
 const API_TYPES = {
-  anthropic: '🧠 Anthropic Claude',
-  openai: '🤖 OpenAI',
-  google: '🔍 Google AI',
-  firecrawl: '🔥 Firecrawl',
-  huggingface: '🤗 Hugging Face',
-  cohere: '📝 Cohere',
-  mistral: '⚡ Mistral',
-  groq: '⚙️ Groq',
-  replicate: '🎬 Replicate',
-  other: '📦 Outro'
+  anthropic: 'Anthropic Claude',
+  openai: 'OpenAI',
+  google: 'Google AI',
+  firecrawl: 'Firecrawl',
+  huggingface: 'Hugging Face',
+  cohere: 'Cohere',
+  mistral: 'Mistral',
+  groq: 'Groq',
+  replicate: 'Replicate',
+  other: 'Outro'
 };
 
 export default function ApiManager({ token, onSave }) {
@@ -103,7 +104,7 @@ export default function ApiManager({ token, onSave }) {
   return (
     <div className="manager">
       <div className="manager-form">
-        <h2>{editing ? '✏️ Editar API' : '➕ Adicionar Nova API'}</h2>
+        <h2>{editing ? <><IconEdit /> Editar API</> : <><IconPlus /> Adicionar nova API</>}</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -169,7 +170,7 @@ export default function ApiManager({ token, onSave }) {
       </div>
 
       <div className="manager-list">
-        <h2>🔌 APIs Configuradas</h2>
+        <h2><IconPlug /> APIs configuradas</h2>
         {apis.length > 0 ? (
           <table>
             <thead>
@@ -189,8 +190,8 @@ export default function ApiManager({ token, onSave }) {
                   <td>{api.pricing_model}</td>
                   <td>R$ {api.unit_cost?.toFixed(5)}</td>
                   <td className="actions">
-                    <button className="btn-edit" onClick={() => handleEdit(api)}>✏️</button>
-                    <button className="btn-delete" onClick={() => handleDelete(api.id)}>🗑️</button>
+                    <button className="btn-edit" onClick={() => handleEdit(api)} aria-label="Editar"><IconEdit /></button>
+                    <button className="btn-delete" onClick={() => handleDelete(api.id)} aria-label="Excluir"><IconTrash /></button>
                   </td>
                 </tr>
               ))}

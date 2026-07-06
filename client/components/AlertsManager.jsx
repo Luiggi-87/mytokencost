@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Manager.css";
+import { IconBell, IconRefresh, IconTrash } from "./Icons";
 
 export default function AlertsManager({ token }) {
   const [alerts, setAlerts] = useState([]);
@@ -101,7 +102,7 @@ export default function AlertsManager({ token }) {
   return (
     <div className="manager">
       <div className="manager-form">
-        <h2>🚨 Novo Alerta</h2>
+        <h2><IconBell /> Novo alerta</h2>
         <form onSubmit={handleSubmit}>
           <select
             value={form.projectId}
@@ -150,7 +151,7 @@ export default function AlertsManager({ token }) {
       </div>
 
       <div className="manager-list">
-        <h2>📋 Alertas</h2>
+        <h2><IconBell /> Alertas</h2>
         {alerts.length > 0 ? (
           <table>
             <thead>
@@ -168,19 +169,25 @@ export default function AlertsManager({ token }) {
                   <td>{alert.type}</td>
                   <td>R$ {alert.threshold?.toFixed(2)}</td>
                   <td>{alert.action}</td>
-                  <td>{alert.active ? "✅ Ativo" : "❌ Inativo"}</td>
+                  <td>
+                    <span className={`status-badge ${alert.active ? "status-on" : "status-off"}`}>
+                      {alert.active ? "Ativo" : "Inativo"}
+                    </span>
+                  </td>
                   <td className="actions">
                     <button
                       className="btn-edit"
                       onClick={() => toggleAlert(alert.id)}
+                      aria-label="Alternar status"
                     >
-                      🔄
+                      <IconRefresh />
                     </button>
                     <button
                       className="btn-delete"
                       onClick={() => handleDelete(alert.id)}
+                      aria-label="Excluir"
                     >
-                      🗑️
+                      <IconTrash />
                     </button>
                   </td>
                 </tr>

@@ -16,7 +16,11 @@
 
 .manager-form h2 {
   margin-bottom: 1rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .manager-form form {
@@ -44,17 +48,40 @@
 
 .manager-list h2 {
   margin-bottom: 1rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .empty {
   text-align: center;
   padding: 2rem;
+  color: var(--text-muted);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-on {
+  background: rgba(34, 193, 122, 0.12);
+  color: var(--success);
+}
+
+.status-off {
+  background: rgba(139, 142, 150, 0.15);
   color: var(--text-muted);
 }
 

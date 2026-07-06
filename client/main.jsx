@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { getInitialTheme, applyTheme } from './theme';
+
+// Aplicar tema salvo antes do primeiro paint (evita flash de tema errado)
+applyTheme(getInitialTheme());
 
 // Interceptar todos os fetch para adicionar API_URL automaticamente
 const originalFetch = window.fetch;

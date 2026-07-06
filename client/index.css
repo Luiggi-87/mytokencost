@@ -5,17 +5,33 @@
 }
 
 :root {
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --secondary: #ec4899;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --bg: #0f172a;
-  --bg-light: #1e293b;
-  --text: #f1f5f9;
-  --text-muted: #cbd5e1;
-  --border: #334155;
+  --primary: #3b82f6;
+  --primary-rgb: 59, 130, 246;
+  --primary-dark: #2f6fe0;
+  --success: #22c17a;
+  --warning: #d99a2b;
+  --danger: #e35a5a;
+  --bg: #15171b;
+  --bg-light: #1c1e24;
+  --bg-lighter: #22242c;
+  --text: #e9eaec;
+  --text-muted: #8b8e96;
+  --border: #262931;
+}
+
+[data-theme="light"] {
+  --primary: #2952e3;
+  --primary-rgb: 41, 82, 227;
+  --primary-dark: #1f3fb8;
+  --success: #1e8a5f;
+  --warning: #b3760b;
+  --danger: #c23b3b;
+  --bg: #f6f7f9;
+  --bg-light: #ffffff;
+  --bg-lighter: #eef0f3;
+  --text: #16181d;
+  --text-muted: #6b7280;
+  --border: #e4e6ea;
 }
 
 body {
@@ -55,7 +71,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
 }
 
 table {
@@ -76,7 +92,7 @@ th, td {
 }
 
 tr:hover {
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(var(--primary-rgb), 0.06);
 }
 
 .btn-primary {
@@ -104,24 +120,29 @@ tr:hover {
   background: var(--border);
 }
 
-.btn-delete {
+.btn-delete, .btn-edit {
   background: transparent;
-  color: var(--danger);
   padding: 0.5rem;
-  font-size: 1.2rem;
+  border-radius: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete {
+  color: var(--text-muted);
 }
 
 .btn-delete:hover {
-  transform: scale(1.1);
+  background: rgba(227, 90, 90, 0.1);
+  color: var(--danger);
 }
 
 .btn-edit {
-  background: transparent;
-  color: var(--primary);
-  padding: 0.5rem;
-  font-size: 1.2rem;
+  color: var(--text-muted);
 }
 
 .btn-edit:hover {
-  transform: scale(1.1);
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
 }
