@@ -16,6 +16,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import webhookRoutes from './routes/webhooks.js';
 import alertRoutes from './routes/alerts.js';
 import reportRoutes from './routes/reports.js';
+import integrationRoutes from './routes/integrations.js';
 
 dotenv.config();
 
@@ -42,6 +43,9 @@ app.use(express.json());
 
 // Rotas de Autenticação
 app.use('/api/auth', authRoutes);
+
+// Rotas de Integração (sem autenticação - usa chave do provider)
+app.use('/api/integrations', integrationRoutes);
 
 // Rotas da API (todas requerem autenticação)
 app.use('/api/apis', apiRoutes);
