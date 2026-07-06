@@ -12,6 +12,7 @@ export default function IntegrationSetup({ token, userId }) {
   const [providerKey, setProviderKey] = useState('');
   const [validationResult, setValidationResult] = useState(null);
   const [validating, setValidating] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('');
 
   useEffect(() => {
     fetchProjects();
@@ -178,6 +179,26 @@ const msg = await client.messages.create({
           >
             Copiar API ID
           </button>
+
+          {validationResult?.is_valid && validationResult?.models_tested && (
+            <div style={{ marginTop: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>
+                Qual modelo o seu sistema usa?
+              </label>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                style={{ width: '100%', padding: '0.6rem' }}
+              >
+                <option value="">Selecione um modelo...</option>
+                {validationResult.models_tested.map(m => (
+                  <option key={m.model} value={m.model}>
+                    {m.model} (${m.pricing.input_per_million.toFixed(2)}/M in, ${m.pricing.output_per_million.toFixed(2)}/M out)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: '2rem' }}>
@@ -235,11 +256,30 @@ const msg = await client.messages.create({
                 {validationResult.is_valid ? ' ✓' : ' ✗'}
               </div>
 
-              {validationResult.is_valid && (
+              {validationResult.is_valid && validationResult.models_tested && (
                 <>
-                  <div style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                    <div>Teste: {validationResult.usage?.test_input_tokens} in + {validationResult.usage?.test_output_tokens} out</div>
-                    <div>Custo do teste: ${validationResult.usage?.test_total_cost?.toFixed(6) || '0'}</div>
+                  <div style={{ fontSize: '0.85rem', marginBottom: '1rem', marginTop: '0.5rem' }}>
+                    <strong>Modelos testados:</strong>
+                    {validationResult.models_tested.map((m) => (
+                      <div key={m.model} style={{
+                        background: 'var(--bg-lighter)',
+                        padding: '0.6rem',
+                        borderRadius: '0.3rem',
+                        marginTop: '0.5rem',
+                        fontSize: '0.8rem'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                          <span><strong>{m.model}</strong></span>
+                          <span style={{ color: '#10b981' }}>✓ Ativo</span>
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                          Teste: {m.usage.test_input_tokens} in + {m.usage.test_output_tokens} out = ${m.usage.test_total_cost?.toFixed(6)}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                          Preço: ${m.pricing.input_per_million?.toFixed(2)}/M in + ${m.pricing.output_per_million?.toFixed(2)}/M out
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {validationResult.billing && (
@@ -247,20 +287,20 @@ const msg = await client.messages.create({
                       background: 'var(--bg-lighter)',
                       padding: '0.6rem',
                       borderRadius: '0.3rem',
-                      fontSize: '0.85rem',
-                      marginTop: '0.5rem'
+                      fontSize: '0.85rem'
                     }}>
+                      <strong>Informações de Crédito:</strong>
                       {validationResult.billing.credit_available !== undefined ? (
                         <>
-                          <div><strong>Crédito disponível:</strong> ${validationResult.billing.credit_available?.toFixed(2)}</div>
-                          <div><strong>Total de crédito:</strong> ${validationResult.billing.total_credit?.toFixed(2)}</div>
-                          <div><strong>Crédito usado:</strong> ${validationResult.billing.used_credit?.toFixed(2)}</div>
+                          <div style={{ marginTop: '0.3rem' }}><strong>Disponível:</strong> ${validationResult.billing.credit_available?.toFixed(2)}</div>
+                          <div><strong>Total:</strong> ${validationResult.billing.total_credit?.toFixed(2)}</div>
+                          <div><strong>Usado:</strong> ${validationResult.billing.used_credit?.toFixed(2)}</div>
                           {validationResult.billing.expires_at && (
-                            <div><strong>Expira em:</strong> {new Date(validationResult.billing.expires_at).toLocaleDateString()}</div>
+                            <div><strong>Expira:</strong> {new Date(validationResult.billing.expires_at).toLocaleDateString()}</div>
                           )}
                         </>
                       ) : (
-                        <div>Chave válida e ativa ✓</div>
+                        <div style={{ marginTop: '0.3rem' }}>Chave válida e ativa ✓</div>
                       )}
                     </div>
                   )}

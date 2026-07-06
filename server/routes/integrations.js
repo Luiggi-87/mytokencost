@@ -1,6 +1,13 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const router = express.Router();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Carregar pricing table
+const prices = JSON.parse(fs.readFileSync(path.join(__dirname, '../prices.json'), 'utf-8'));
 
 // GET /api/integrations/validate-key
 // Valida chave do provedor e retorna informações de consumo
@@ -26,36 +33,75 @@ router.post('/validate-key', async (req, res) => {
 
     let result = {};
 
-    // Validar Anthropic
+    // Validar Anthropic com múltiplos modelos
     if (provider === 'anthropic') {
       try {
-        // Faz chamada teste diretamente via REST (sem SDK)
-        const testRes = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'x-api-key': provider_key,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 10,
-            messages: [{ role: 'user', content: 'ok' }]
-          })
-        });
+        const modelsToTest = [
+          'claude-3-5-sonnet-20241022',
+          'claude-3-opus-20250219',
+          'claude-3-haiku-20240307'
+        ];
 
-        if (!testRes.ok) {
-          const errorData = await testRes.json();
+        const modelResults = [];
+        let firstError = null;
+
+        // Testar cada modelo
+        for (const model of modelsToTest) {
+          try {
+            const testRes = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'x-api-key': provider_key,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: model,
+                max_tokens: 10,
+                messages: [{ role: 'user', content: 'ok' }]
+              })
+            });
+
+            if (!testRes.ok) {
+              if (!firstError) {
+                const errorData = await testRes.json();
+                firstError = errorData.error?.message || testRes.statusText;
+              }
+              continue;
+            }
+
+            const response = await testRes.json();
+            const pricing = prices['anthropic-claude'].models[model];
+
+            modelResults.push({
+              model: model,
+              status: 'active',
+              usage: {
+                test_input_tokens: response.usage.input_tokens,
+                test_output_tokens: response.usage.output_tokens,
+                test_total_cost: (response.usage.input_tokens * pricing.input) + (response.usage.output_tokens * pricing.output)
+              },
+              pricing: {
+                input: pricing.input,
+                output: pricing.output,
+                input_per_million: pricing.input * 1000000,
+                output_per_million: pricing.output * 1000000
+              }
+            });
+          } catch (e) {
+            // Continua com próximo modelo
+          }
+        }
+
+        if (modelResults.length === 0) {
           return res.status(401).json({
             provider: 'anthropic',
             name: 'Anthropic Claude',
             is_valid: false,
             error: 'Chave inválida ou expirada',
-            details: errorData.error?.message || testRes.statusText
+            details: firstError || 'Falha ao testar modelos'
           });
         }
-
-        const response = await testRes.json();
 
         // Tenta buscar info de billing
         let billing = null;
@@ -81,16 +127,7 @@ router.post('/validate-key', async (req, res) => {
           provider: 'anthropic',
           name: 'Anthropic Claude',
           is_valid: true,
-          models: [
-            'claude-3-5-sonnet-20241022',
-            'claude-3-opus-20250219',
-            'claude-3-haiku-20240307'
-          ],
-          usage: {
-            test_input_tokens: response.usage.input_tokens,
-            test_output_tokens: response.usage.output_tokens,
-            test_total_cost: (response.usage.input_tokens * 0.000003) + (response.usage.output_tokens * 0.000015)
-          },
+          models_tested: modelResults,
           billing: billing
         };
       } catch (error) {
@@ -104,7 +141,7 @@ router.post('/validate-key', async (req, res) => {
       }
     }
 
-    // Validar OpenAI
+    // Validar OpenAI com múltiplos modelos
     if (provider === 'openai') {
       try {
         let OpenAI;
@@ -112,23 +149,149 @@ router.post('/validate-key', async (req, res) => {
           const mod = await import('openai');
           OpenAI = mod.default;
         } catch {
-          // SDK não instalado em produção
-          return res.status(400).json({
+          // Usar REST API sem SDK
+          const modelsToTest = ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
+          const modelResults = [];
+          let firstError = null;
+
+          for (const model of modelsToTest) {
+            try {
+              const testRes = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${provider_key}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: model,
+                  max_tokens: 10,
+                  messages: [{ role: 'user', content: 'ok' }]
+                })
+              });
+
+              if (!testRes.ok) {
+                if (!firstError) {
+                  const errorData = await testRes.json();
+                  firstError = errorData.error?.message || testRes.statusText;
+                }
+                continue;
+              }
+
+              const response = await testRes.json();
+              const pricing = prices['openai-gpt'].models[model];
+
+              modelResults.push({
+                model: model,
+                status: 'active',
+                usage: {
+                  test_input_tokens: response.usage.prompt_tokens,
+                  test_output_tokens: response.usage.completion_tokens,
+                  test_total_cost: (response.usage.prompt_tokens * pricing.input) + (response.usage.completion_tokens * pricing.output)
+                },
+                pricing: {
+                  input: pricing.input,
+                  output: pricing.output,
+                  input_per_million: pricing.input * 1000000,
+                  output_per_million: pricing.output * 1000000
+                }
+              });
+            } catch (e) {
+              // Continua com próximo modelo
+            }
+          }
+
+          if (modelResults.length === 0) {
+            return res.status(401).json({
+              provider: 'openai',
+              name: 'OpenAI GPT',
+              is_valid: false,
+              error: 'Chave inválida ou expirada',
+              details: firstError || 'Falha ao testar modelos'
+            });
+          }
+
+          let billing = null;
+          try {
+            const balanceRes = await fetch('https://api.openai.com/v1/billing/credit_grants', {
+              headers: {
+                'Authorization': `Bearer ${provider_key}`,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (balanceRes.ok) {
+              const creditData = await balanceRes.json();
+              if (creditData.data && creditData.data.length > 0) {
+                const activeCredit = creditData.data.find(c => c.status === 'active');
+                if (activeCredit) {
+                  billing = {
+                    credit_available: activeCredit.grant_amount - activeCredit.used_amount,
+                    total_credit: activeCredit.grant_amount,
+                    used_credit: activeCredit.used_amount,
+                    expires_at: activeCredit.expires_at
+                  };
+                }
+              }
+            }
+          } catch (e) {
+            // Billing endpoint pode não estar disponível
+          }
+
+          return res.json({
             provider: 'openai',
             name: 'OpenAI GPT',
-            is_valid: false,
-            error: 'SDK não disponível neste servidor'
+            is_valid: true,
+            models_tested: modelResults,
+            billing: billing
           });
         }
 
         const client = new OpenAI({ apiKey: provider_key });
+        const modelsToTest = ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
+        const modelResults = [];
+        let firstError = null;
 
-        // Faz chamada teste
-        const response = await client.chat.completions.create({
-          model: 'gpt-3.5-turbo',
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'ok' }]
-        });
+        for (const model of modelsToTest) {
+          try {
+            const response = await client.chat.completions.create({
+              model: model,
+              max_tokens: 10,
+              messages: [{ role: 'user', content: 'ok' }]
+            });
+
+            const pricing = prices['openai-gpt'].models[model];
+
+            modelResults.push({
+              model: model,
+              status: 'active',
+              usage: {
+                test_input_tokens: response.usage.prompt_tokens,
+                test_output_tokens: response.usage.completion_tokens,
+                test_total_cost: (response.usage.prompt_tokens * pricing.input) + (response.usage.completion_tokens * pricing.output)
+              },
+              pricing: {
+                input: pricing.input,
+                output: pricing.output,
+                input_per_million: pricing.input * 1000000,
+                output_per_million: pricing.output * 1000000
+              }
+            });
+          } catch (e) {
+            if (!firstError) {
+              firstError = e.message;
+            }
+          }
+        }
+
+        if (modelResults.length === 0) {
+          return res.status(401).json({
+            provider: 'openai',
+            name: 'OpenAI GPT',
+            is_valid: false,
+            error: 'Chave inválida ou expirada',
+            details: firstError || 'Falha ao testar modelos'
+          });
+        }
 
         // Tenta buscar balance/credit info via REST
         let billing = null;
@@ -162,18 +325,7 @@ router.post('/validate-key', async (req, res) => {
           provider: 'openai',
           name: 'OpenAI GPT',
           is_valid: true,
-          models: [
-            'gpt-4',
-            'gpt-4-turbo',
-            'gpt-4o',
-            'gpt-3.5-turbo'
-          ],
-          usage: {
-            test_input_tokens: response.usage.prompt_tokens,
-            test_output_tokens: response.usage.completion_tokens,
-            test_total_tokens: response.usage.total_tokens,
-            test_total_cost: (response.usage.prompt_tokens * 0.0000005) + (response.usage.completion_tokens * 0.0000015)
-          },
+          models_tested: modelResults,
           billing: billing
         };
       } catch (error) {
