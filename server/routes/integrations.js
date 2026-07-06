@@ -52,6 +52,26 @@ router.post('/validate-key', async (req, res) => {
           messages: [{ role: 'user', content: 'ok' }]
         });
 
+        // Tenta buscar info de usage/billing
+        let billing = null;
+        try {
+          const billingRes = await fetch('https://api.anthropic.com/v1/accounts/me', {
+            headers: {
+              'x-api-key': provider_key,
+              'content-type': 'application/json'
+            }
+          });
+          if (billingRes.ok) {
+            const accountInfo = await billingRes.json();
+            billing = {
+              account_id: accountInfo.account_id,
+              status: 'active'
+            };
+          }
+        } catch (e) {
+          // Endpoint pode não estar disponível, continua sem billing info
+        }
+
         result = {
           provider: 'anthropic',
           name: 'Anthropic Claude',
@@ -65,7 +85,8 @@ router.post('/validate-key', async (req, res) => {
             test_input_tokens: response.usage.input_tokens,
             test_output_tokens: response.usage.output_tokens,
             test_total_cost: (response.usage.input_tokens * 0.000003) + (response.usage.output_tokens * 0.000015)
-          }
+          },
+          billing: billing
         };
       } catch (error) {
         return res.status(401).json({
@@ -104,15 +125,32 @@ router.post('/validate-key', async (req, res) => {
           messages: [{ role: 'user', content: 'ok' }]
         });
 
-        // Tenta buscar usage data (requer endpoint adicional)
-        let usage_data = null;
+        // Tenta buscar balance/credit info via REST
+        let billing = null;
         try {
-          const usage = await client.beta.billing.usage.list({
-            limit: 1
-          }).catch(() => null);
-          usage_data = usage;
+          const balanceRes = await fetch('https://api.openai.com/v1/billing/credit_grants', {
+            headers: {
+              'Authorization': `Bearer ${provider_key}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (balanceRes.ok) {
+            const creditData = await balanceRes.json();
+            if (creditData.data && creditData.data.length > 0) {
+              const activeCredit = creditData.data.find(c => c.status === 'active');
+              if (activeCredit) {
+                billing = {
+                  credit_available: activeCredit.grant_amount - activeCredit.used_amount,
+                  total_credit: activeCredit.grant_amount,
+                  used_credit: activeCredit.used_amount,
+                  expires_at: activeCredit.expires_at
+                };
+              }
+            }
+          }
         } catch (e) {
-          // Usage endpoint pode não estar disponível
+          // Billing endpoint pode não estar disponível ou requer billing acesso específico
         }
 
         result = {
@@ -131,9 +169,7 @@ router.post('/validate-key', async (req, res) => {
             test_total_tokens: response.usage.total_tokens,
             test_total_cost: (response.usage.prompt_tokens * 0.0000005) + (response.usage.completion_tokens * 0.0000015)
           },
-          billing_data: usage_data ? {
-            note: 'Acesso a dados de billing pode estar limitado'
-          } : null
+          billing: billing
         };
       } catch (error) {
         return res.status(401).json({

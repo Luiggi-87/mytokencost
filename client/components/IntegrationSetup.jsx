@@ -9,6 +9,10 @@ export default function IntegrationSetup({ token, userId }) {
   const [selectedApi, setSelectedApi] = useState('');
   const [backendUrl] = useState('https://mytokencost.up.railway.app');
 
+  const [providerKey, setProviderKey] = useState('');
+  const [validationResult, setValidationResult] = useState(null);
+  const [validating, setValidating] = useState(false);
+
   useEffect(() => {
     fetchProjects();
     fetchApis();
@@ -43,6 +47,27 @@ export default function IntegrationSetup({ token, userId }) {
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text);
     alert(`${label} copiado!`);
+  };
+
+  const validateProviderKey = async () => {
+    if (!providerKey.trim()) {
+      alert('Insira uma chave do provedor');
+      return;
+    }
+    setValidating(true);
+    try {
+      const res = await fetch('/api/integrations/validate-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider_key: providerKey })
+      });
+      const data = await res.json();
+      setValidationResult(data);
+    } catch (error) {
+      setValidationResult({ error: error.message });
+    } finally {
+      setValidating(false);
+    }
   };
 
   const exampleCode = `import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
@@ -174,6 +199,82 @@ const msg = await client.messages.create({
           >
             Copiar Backend URL
           </button>
+        </div>
+
+        <div style={{ marginBottom: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
+          <h3 style={{ fontSize: '0.95rem', marginBottom: '1rem' }}>5. Validar Chave & Ver Crédito</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
+            Cole sua chave de API para validar e ver créditos disponíveis (Anthropic, OpenAI)
+          </p>
+          <input
+            type="password"
+            placeholder="sk-ant-... ou sk-..."
+            value={providerKey}
+            onChange={(e) => setProviderKey(e.target.value)}
+            style={{ width: '100%', marginBottom: '0.5rem', padding: '0.6rem' }}
+          />
+          <button
+            className="btn-primary"
+            onClick={validateProviderKey}
+            disabled={validating}
+            style={{ width: '100%' }}
+          >
+            {validating ? 'Validando...' : 'Validar Chave'}
+          </button>
+
+          {validationResult && (
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              borderRadius: '0.4rem',
+              background: validationResult.is_valid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              borderLeft: `3px solid ${validationResult.is_valid ? '#10b981' : '#ef4444'}`
+            }}>
+              <div style={{ marginBottom: '0.5rem' }}>
+                <strong>{validationResult.name}</strong>
+                {validationResult.is_valid ? ' ✓' : ' ✗'}
+              </div>
+
+              {validationResult.is_valid && (
+                <>
+                  <div style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                    <div>Teste: {validationResult.usage?.test_input_tokens} in + {validationResult.usage?.test_output_tokens} out</div>
+                    <div>Custo do teste: ${validationResult.usage?.test_total_cost?.toFixed(6) || '0'}</div>
+                  </div>
+
+                  {validationResult.billing && (
+                    <div style={{
+                      background: 'var(--bg-lighter)',
+                      padding: '0.6rem',
+                      borderRadius: '0.3rem',
+                      fontSize: '0.85rem',
+                      marginTop: '0.5rem'
+                    }}>
+                      {validationResult.billing.credit_available !== undefined ? (
+                        <>
+                          <div><strong>Crédito disponível:</strong> ${validationResult.billing.credit_available?.toFixed(2)}</div>
+                          <div><strong>Total de crédito:</strong> ${validationResult.billing.total_credit?.toFixed(2)}</div>
+                          <div><strong>Crédito usado:</strong> ${validationResult.billing.used_credit?.toFixed(2)}</div>
+                          {validationResult.billing.expires_at && (
+                            <div><strong>Expira em:</strong> {new Date(validationResult.billing.expires_at).toLocaleDateString()}</div>
+                          )}
+                        </>
+                      ) : (
+                        <div>Chave válida e ativa ✓</div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {validationResult.error && (
+                <div style={{ color: '#ef4444', fontSize: '0.85rem' }}>
+                  <strong>Erro:</strong> {validationResult.error}
+                  {validationResult.details && <div style={{ fontSize: '0.8rem', marginTop: '0.3rem' }}>{validationResult.details}</div>}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
