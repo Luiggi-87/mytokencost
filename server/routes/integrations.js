@@ -29,30 +29,35 @@ router.post('/validate-key', async (req, res) => {
     // Validar Anthropic
     if (provider === 'anthropic') {
       try {
-        let Anthropic;
-        try {
-          const mod = await import('@anthropic-ai/sdk');
-          Anthropic = mod.default;
-        } catch {
-          // SDK não instalado em produção
-          return res.status(400).json({
+        // Faz chamada teste diretamente via REST (sem SDK)
+        const testRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': provider_key,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'ok' }]
+          })
+        });
+
+        if (!testRes.ok) {
+          const errorData = await testRes.json();
+          return res.status(401).json({
             provider: 'anthropic',
             name: 'Anthropic Claude',
             is_valid: false,
-            error: 'SDK não disponível neste servidor'
+            error: 'Chave inválida ou expirada',
+            details: errorData.error?.message || testRes.statusText
           });
         }
 
-        const client = new Anthropic({ apiKey: provider_key });
+        const response = await testRes.json();
 
-        // Faz chamada teste simples
-        const response = await client.messages.create({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'ok' }]
-        });
-
-        // Tenta buscar info de usage/billing
+        // Tenta buscar info de billing
         let billing = null;
         try {
           const billingRes = await fetch('https://api.anthropic.com/v1/accounts/me', {
@@ -69,7 +74,7 @@ router.post('/validate-key', async (req, res) => {
             };
           }
         } catch (e) {
-          // Endpoint pode não estar disponível, continua sem billing info
+          // Endpoint pode não estar disponível
         }
 
         result = {
