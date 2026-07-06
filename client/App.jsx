@@ -92,7 +92,7 @@ export default function App() {
 
     socket.on("cost-recorded", (data) => {
       fetchStats();
-      showNotification(`Custo de R$ ${data.amount?.toFixed(2)} registrado`);
+      showNotification(`Custo de $ ${data.amount?.toFixed(2)} registrado`);
     });
 
     socket.on("alert-triggered", (data) => {
@@ -198,7 +198,7 @@ export default function App() {
             {stats && (
               <div className="topbar-stat">
                 <span>Total gasto</span>
-                <strong>R$ {stats.total?.toFixed(2)}</strong>
+                <strong>$ {stats.total?.toFixed(2)}</strong>
               </div>
             )}
             <span className="topbar-user">{user.organization || user.email}</span>

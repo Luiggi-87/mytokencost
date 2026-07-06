@@ -127,7 +127,7 @@ export default function AlertsManager({ token }) {
           <input
             type="number"
             step="0.01"
-            placeholder="Limite (R$)"
+            placeholder="Limite ($)"
             value={form.threshold}
             onChange={(e) =>
               setForm({ ...form, threshold: parseFloat(e.target.value) })
@@ -167,7 +167,7 @@ export default function AlertsManager({ token }) {
               {alerts.map((alert) => (
                 <tr key={alert.id}>
                   <td>{alert.type}</td>
-                  <td>R$ {alert.threshold?.toFixed(2)}</td>
+                  <td>$ {alert.threshold?.toFixed(2)}</td>
                   <td>{alert.action}</td>
                   <td>
                     <span className={`status-badge ${alert.active ? "status-on" : "status-off"}`}>

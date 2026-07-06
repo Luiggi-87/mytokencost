@@ -114,7 +114,7 @@ export default function ProjectManager({ token, onSave }) {
           <input
             type="number"
             step="0.01"
-            placeholder="Taxa Mensal (R$)"
+            placeholder="Taxa Mensal ($)"
             value={form.monthly_rate}
             onChange={(e) => setForm({ ...form, monthly_rate: parseFloat(e.target.value) })}
           />
@@ -153,7 +153,7 @@ export default function ProjectManager({ token, onSave }) {
                     {project.id.substring(0, 8)}...
                   </td>
                   <td>{project.client_name || '-'}</td>
-                  <td>R$ {project.monthly_rate?.toFixed(2)}</td>
+                  <td>$ {project.monthly_rate?.toFixed(2)}</td>
                   <td className="actions">
                     <button className="btn-edit" onClick={() => handleEdit(project)} aria-label="Editar"><IconEdit /></button>
                     <button className="btn-delete" onClick={() => handleDelete(project.id)} aria-label="Excluir"><IconTrash /></button>

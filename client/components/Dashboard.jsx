@@ -10,7 +10,7 @@ export default function Dashboard({ stats, onRefresh, token }) {
       <div className="dashboard-grid">
         <div className="card card-total">
           <h3><IconCoin /> Total gasto</h3>
-          <div className="amount">R$ {stats.total?.toFixed(2)}</div>
+          <div className="amount">$ {stats.total?.toFixed(2)}</div>
         </div>
 
         <div className="card">
@@ -20,7 +20,7 @@ export default function Dashboard({ stats, onRefresh, token }) {
               stats.byApi.map((api) => (
                 <div key={api.name} className="list-item">
                   <span className="api-name">{api.name}</span>
-                  <span className="api-value">R$ {api.total?.toFixed(2)}</span>
+                  <span className="api-value">$ {api.total?.toFixed(2)}</span>
                 </div>
               ))
             ) : (
@@ -41,7 +41,7 @@ export default function Dashboard({ stats, onRefresh, token }) {
                       <span className="project-client">{project.client_name}</span>
                     )}
                   </div>
-                  <span className="project-value">R$ {project.total?.toFixed(2)}</span>
+                  <span className="project-value">$ {project.total?.toFixed(2)}</span>
                 </div>
               ))
             ) : (

@@ -113,7 +113,7 @@ export default function CostTracker({ token, onSave }) {
           <input
             type="number"
             step="0.01"
-            placeholder="Valor (R$)"
+            placeholder="Valor ($)"
             value={form.amount}
             onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) })}
             required
@@ -171,7 +171,7 @@ export default function CostTracker({ token, onSave }) {
                   <td>{cost.project_name}</td>
                   <td>{cost.api_name}</td>
                   <td>{cost.units} {cost.unit_type}</td>
-                  <td><strong>R$ {cost.amount?.toFixed(2)}</strong></td>
+                  <td><strong>$ {cost.amount?.toFixed(2)}</strong></td>
                   <td>
                     <button className="btn-delete" onClick={() => handleDelete(cost.id)} aria-label="Excluir"><IconTrash /></button>
                   </td>

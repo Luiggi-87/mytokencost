@@ -183,7 +183,7 @@ export default function ApiManager({ token, onSave }) {
               <option value="">Selecionar modelo...</option>
               {Object.entries(models[form.type]).map(([modelName, pricing]) => (
                 <option key={modelName} value={modelName}>
-                  {modelName} (média: R$ {((pricing.input + pricing.output) / 2).toFixed(6)})
+                  {modelName} (média: $ {((pricing.input + pricing.output) / 2).toFixed(6)})
                 </option>
               ))}
             </select>
@@ -258,7 +258,7 @@ export default function ApiManager({ token, onSave }) {
                   </td>
                   <td>{api.type}</td>
                   <td>{api.model || api.pricing_model}</td>
-                  <td>R$ {api.unit_cost?.toFixed(5)}</td>
+                  <td>$ {api.unit_cost?.toFixed(5)}</td>
                   <td className="actions">
                     <button className="btn-edit" onClick={() => handleEdit(api)} aria-label="Editar"><IconEdit /></button>
                     <button className="btn-delete" onClick={() => handleDelete(api.id)} aria-label="Excluir"><IconTrash /></button>
