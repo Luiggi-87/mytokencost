@@ -42,56 +42,49 @@ router.post('/validate-key', async (req, res) => {
           'claude-3-haiku-20240307'
         ];
 
-        const modelResults = [];
-        let firstError = null;
-
-        // Testar cada modelo
-        for (const model of modelsToTest) {
-          try {
-            const testRes = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'x-api-key': provider_key,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json'
-              },
-              body: JSON.stringify({
-                model: model,
-                max_tokens: 10,
-                messages: [{ role: 'user', content: 'ok' }]
-              })
-            });
-
-            if (!testRes.ok) {
-              if (!firstError) {
-                const errorData = await testRes.json();
-                firstError = errorData.error?.message || testRes.statusText;
-              }
-              continue;
-            }
-
-            const response = await testRes.json();
-            const pricing = prices['anthropic-claude'].models[model];
-
-            modelResults.push({
+        // Testar todos os modelos em paralelo
+        const modelPromises = modelsToTest.map(model =>
+          fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': provider_key,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify({
               model: model,
-              status: 'active',
-              usage: {
-                test_input_tokens: response.usage.input_tokens,
-                test_output_tokens: response.usage.output_tokens,
-                test_total_cost: (response.usage.input_tokens * pricing.input) + (response.usage.output_tokens * pricing.output)
-              },
-              pricing: {
-                input: pricing.input,
-                output: pricing.output,
-                input_per_million: pricing.input * 1000000,
-                output_per_million: pricing.output * 1000000
+              max_tokens: 10,
+              messages: [{ role: 'user', content: 'ok' }]
+            })
+          })
+            .then(async res => {
+              if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error?.message || res.statusText);
               }
-            });
-          } catch (e) {
-            // Continua com próximo modelo
-          }
-        }
+              const response = await res.json();
+              const pricing = prices['anthropic-claude'].models[model];
+              return {
+                model: model,
+                status: 'active',
+                usage: {
+                  test_input_tokens: response.usage.input_tokens,
+                  test_output_tokens: response.usage.output_tokens,
+                  test_total_cost: (response.usage.input_tokens * pricing.input) + (response.usage.output_tokens * pricing.output)
+                },
+                pricing: {
+                  input: pricing.input,
+                  output: pricing.output,
+                  input_per_million: pricing.input * 1000000,
+                  output_per_million: pricing.output * 1000000
+                }
+              };
+            })
+            .catch(e => null)
+        );
+
+        const modelResults = (await Promise.all(modelPromises)).filter(r => r !== null);
+        const firstError = modelResults.length === 0 ? 'Falha ao testar modelos' : null;
 
         if (modelResults.length === 0) {
           return res.status(401).json({
@@ -149,56 +142,50 @@ router.post('/validate-key', async (req, res) => {
           const mod = await import('openai');
           OpenAI = mod.default;
         } catch {
-          // Usar REST API sem SDK
+          // Usar REST API sem SDK - testar modelos em paralelo
           const modelsToTest = ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
-          const modelResults = [];
-          let firstError = null;
 
-          for (const model of modelsToTest) {
-            try {
-              const testRes = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${provider_key}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  model: model,
-                  max_tokens: 10,
-                  messages: [{ role: 'user', content: 'ok' }]
-                })
-              });
-
-              if (!testRes.ok) {
-                if (!firstError) {
-                  const errorData = await testRes.json();
-                  firstError = errorData.error?.message || testRes.statusText;
-                }
-                continue;
-              }
-
-              const response = await testRes.json();
-              const pricing = prices['openai-gpt'].models[model];
-
-              modelResults.push({
+          const modelPromises = modelsToTest.map(model =>
+            fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${provider_key}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
                 model: model,
-                status: 'active',
-                usage: {
-                  test_input_tokens: response.usage.prompt_tokens,
-                  test_output_tokens: response.usage.completion_tokens,
-                  test_total_cost: (response.usage.prompt_tokens * pricing.input) + (response.usage.completion_tokens * pricing.output)
-                },
-                pricing: {
-                  input: pricing.input,
-                  output: pricing.output,
-                  input_per_million: pricing.input * 1000000,
-                  output_per_million: pricing.output * 1000000
+                max_tokens: 10,
+                messages: [{ role: 'user', content: 'ok' }]
+              })
+            })
+              .then(async testRes => {
+                if (!testRes.ok) {
+                  const errorData = await testRes.json();
+                  throw new Error(errorData.error?.message || testRes.statusText);
                 }
-              });
-            } catch (e) {
-              // Continua com próximo modelo
-            }
-          }
+                const response = await testRes.json();
+                const pricing = prices['openai-gpt'].models[model];
+                return {
+                  model: model,
+                  status: 'active',
+                  usage: {
+                    test_input_tokens: response.usage.prompt_tokens,
+                    test_output_tokens: response.usage.completion_tokens,
+                    test_total_cost: (response.usage.prompt_tokens * pricing.input) + (response.usage.completion_tokens * pricing.output)
+                  },
+                  pricing: {
+                    input: pricing.input,
+                    output: pricing.output,
+                    input_per_million: pricing.input * 1000000,
+                    output_per_million: pricing.output * 1000000
+                  }
+                };
+              })
+              .catch(e => null)
+          );
+
+          const modelResults = (await Promise.all(modelPromises)).filter(r => r !== null);
+          const firstError = modelResults.length === 0 ? 'Falha ao testar modelos' : null;
 
           if (modelResults.length === 0) {
             return res.status(401).json({
@@ -248,40 +235,36 @@ router.post('/validate-key', async (req, res) => {
 
         const client = new OpenAI({ apiKey: provider_key });
         const modelsToTest = ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
-        const modelResults = [];
-        let firstError = null;
 
-        for (const model of modelsToTest) {
-          try {
-            const response = await client.chat.completions.create({
-              model: model,
-              max_tokens: 10,
-              messages: [{ role: 'user', content: 'ok' }]
-            });
+        // Testar todos os modelos em paralelo
+        const modelPromises = modelsToTest.map(model =>
+          client.chat.completions.create({
+            model: model,
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'ok' }]
+          })
+            .then(response => {
+              const pricing = prices['openai-gpt'].models[model];
+              return {
+                model: model,
+                status: 'active',
+                usage: {
+                  test_input_tokens: response.usage.prompt_tokens,
+                  test_output_tokens: response.usage.completion_tokens,
+                  test_total_cost: (response.usage.prompt_tokens * pricing.input) + (response.usage.completion_tokens * pricing.output)
+                },
+                pricing: {
+                  input: pricing.input,
+                  output: pricing.output,
+                  input_per_million: pricing.input * 1000000,
+                  output_per_million: pricing.output * 1000000
+                }
+              };
+            })
+            .catch(e => null)
+        );
 
-            const pricing = prices['openai-gpt'].models[model];
-
-            modelResults.push({
-              model: model,
-              status: 'active',
-              usage: {
-                test_input_tokens: response.usage.prompt_tokens,
-                test_output_tokens: response.usage.completion_tokens,
-                test_total_cost: (response.usage.prompt_tokens * pricing.input) + (response.usage.completion_tokens * pricing.output)
-              },
-              pricing: {
-                input: pricing.input,
-                output: pricing.output,
-                input_per_million: pricing.input * 1000000,
-                output_per_million: pricing.output * 1000000
-              }
-            });
-          } catch (e) {
-            if (!firstError) {
-              firstError = e.message;
-            }
-          }
-        }
+        const modelResults = (await Promise.all(modelPromises)).filter(r => r !== null);
 
         if (modelResults.length === 0) {
           return res.status(401).json({
