@@ -6,12 +6,14 @@ import ProjectManager from "./components/ProjectManager";
 import CostTracker from "./components/CostTracker";
 import WebhooksManager from "./components/WebhooksManager";
 import AlertsManager from "./components/AlertsManager";
+import IntegrationSetup from "./components/IntegrationSetup";
 import Login from "./components/Login";
 import { getInitialTheme, applyTheme } from "./theme";
 import {
   IconBell,
   IconCoin,
   IconDashboard,
+  IconEdit,
   IconFolder,
   IconLogout,
   IconMoon,
@@ -28,6 +30,7 @@ const NAV_ITEMS = [
   { key: "apis", label: "APIs", icon: IconPlug },
   { key: "webhooks", label: "Webhooks", icon: IconWebhook },
   { key: "alerts", label: "Alertas", icon: IconBell },
+  { key: "integration", label: "Integração", icon: IconEdit },
 ];
 
 export default function App() {
@@ -218,6 +221,7 @@ export default function App() {
           {activeTab === "apis" && <ApiManager token={token} onSave={handleRefresh} />}
           {activeTab === "webhooks" && <WebhooksManager token={token} />}
           {activeTab === "alerts" && <AlertsManager token={token} />}
+          {activeTab === "integration" && <IntegrationSetup token={token} userId={user.id} />}
         </main>
 
         <footer className="app-footer">
