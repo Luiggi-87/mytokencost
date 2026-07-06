@@ -1,6 +1,4 @@
 import express from 'express';
-import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
 
 const router = express.Router();
 
@@ -31,6 +29,20 @@ router.post('/validate-key', async (req, res) => {
     // Validar Anthropic
     if (provider === 'anthropic') {
       try {
+        let Anthropic;
+        try {
+          const mod = await import('@anthropic-ai/sdk');
+          Anthropic = mod.default;
+        } catch {
+          // SDK não instalado em produção
+          return res.status(400).json({
+            provider: 'anthropic',
+            name: 'Anthropic Claude',
+            is_valid: false,
+            error: 'SDK não disponível neste servidor'
+          });
+        }
+
         const client = new Anthropic({ apiKey: provider_key });
 
         // Faz chamada teste simples
@@ -69,6 +81,20 @@ router.post('/validate-key', async (req, res) => {
     // Validar OpenAI
     if (provider === 'openai') {
       try {
+        let OpenAI;
+        try {
+          const mod = await import('openai');
+          OpenAI = mod.default;
+        } catch {
+          // SDK não instalado em produção
+          return res.status(400).json({
+            provider: 'openai',
+            name: 'OpenAI GPT',
+            is_valid: false,
+            error: 'SDK não disponível neste servidor'
+          });
+        }
+
         const client = new OpenAI({ apiKey: provider_key });
 
         // Faz chamada teste
