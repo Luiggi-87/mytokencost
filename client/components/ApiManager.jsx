@@ -5,21 +5,35 @@ import { IconEdit, IconPlug, IconPlus, IconTrash } from './Icons';
 const API_TYPES = {
   anthropic: 'Anthropic Claude',
   openai: 'OpenAI',
-  google: 'Google AI',
-  firecrawl: 'Firecrawl',
-  huggingface: 'Hugging Face',
-  cohere: 'Cohere',
-  mistral: 'Mistral',
+  google: 'Google Gemini',
   groq: 'Groq',
+  mistral: 'Mistral AI',
+  cohere: 'Cohere',
+  huggingface: 'Hugging Face',
   replicate: 'Replicate',
+  firecrawl: 'Firecrawl',
+  perplexity: 'Perplexity AI',
+  bedrock: 'AWS Bedrock',
+  azure: 'Azure OpenAI',
+  together: 'Together AI',
   other: 'Outro'
 };
 
-// Mapeamento entre o tipo da UI (anthropic) e o ID da tabela prices.json
+// Mapeamento entre o tipo da UI e o ID da tabela prices.json
 const PRICING_PROVIDER_MAP = {
   anthropic: 'anthropic-claude',
   openai: 'openai-gpt',
-  google: 'google-gemini'
+  google: 'google-gemini',
+  groq: 'groq',
+  mistral: 'mistral',
+  cohere: 'cohere',
+  huggingface: 'huggingface',
+  replicate: 'replicate',
+  firecrawl: 'firecrawl',
+  perplexity: 'perplexity',
+  bedrock: 'claude-ai-bedrock',
+  azure: 'azure-openai',
+  together: 'together-ai'
 };
 
 export default function ApiManager({ token, onSave }) {
