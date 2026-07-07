@@ -4,104 +4,90 @@ Seu gerente criou uma chave de acesso pro seu projeto. Siga este guia pra regist
 
 ---
 
-## **OPÇÃO FÁCIL (Recomendado): Validar Chave do Provider Diretamente**
+## **O que copiar e mandar pro seu dev**
 
-Você **SÓ precisa de 1 valor**: sua chave do provedor (Anthropic, OpenAI, etc).
+A forma mais simples: vá na aba **Integração** do MyTokenCost, seção **"Exemplo de Código"**, e clique em **"Copiar Código Completo"**. Isso copia um bloco de código já preenchido com seu token, projeto e API — cole exatamente assim numa mensagem pro dev, sem precisar explicar mais nada.
 
-### 1. Descubra suas informações
+O código copiado se parece com isto:
+
+```javascript
+import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
+
+const client = new CountedAnthropic({
+  apiKey: process.env.ANTHROPIC_KEY,
+  token: 'eyJhbGc...',        // já preenchido pelo sistema
+  projectId: 'a9af06d3-...',  // já preenchido pelo sistema
+  apiId: '9d209942-...',      // já preenchido pelo sistema
+  backendUrl: 'https://mytokencost.up.railway.app'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.messages.create({
+  model: 'claude-sonnet-5',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Olá' }]
+});
+```
+
+O dev só precisa: (1) instalar `npm install @contador-tokens/anthropic-proxy`, (2) trocar o import do `Anthropic` normal pelo `CountedAnthropic`, (3) colar a chave real da Anthropic na variável de ambiente `ANTHROPIC_KEY`. Nada mais muda no código dele.
+
+---
+
+## **OPÇÃO FÁCIL: Validar Chave do Provider Diretamente**
+
+Se o dev preferir só usar a própria chave da Anthropic sem configurar token/IDs:
+
+### 1. Descubra as informações da chave
 ```bash
 curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
   -H "Content-Type: application/json" \
   -d '{"provider_key": "sk-ant-xxxxx"}'
 ```
 
-Retorna:
+Retorna (modelos testados em paralelo, com preço de cada um):
 ```json
 {
   "provider": "anthropic",
   "name": "Anthropic Claude",
   "is_valid": true,
-  "models": ["claude-3-5-sonnet-20241022", "claude-3-opus-20250219"],
-  "usage": {
-    "test_input_tokens": 5,
-    "test_output_tokens": 2,
-    "test_total_cost": 0.000015
-  }
+  "models_tested": [
+    { "model": "claude-opus-4-8", "status": "active", "pricing": { "input_per_million": 5, "output_per_million": 25 } },
+    { "model": "claude-sonnet-5", "status": "active", "pricing": { "input_per_million": 3, "output_per_million": 15 } },
+    { "model": "claude-haiku-4-5", "status": "active", "pricing": { "input_per_million": 1, "output_per_million": 5 } }
+  ]
 }
 ```
 
-### 2. Use diretamente no seu código
-Pega a resposta e usa:
-- `provider_key` = sua chave
-- `backend_url` = `https://mytokencost.up.railway.app`
-
 ---
 
-## **OPÇÃO TRADICIONAL: Os 5 Dados que Você Precisa** (se seu gerente preferir)
+## **OPÇÃO TRADICIONAL: Os 5 Dados que Você Precisa** (se preferir configurar manualmente)
 
-Seu gerente vai fornecer:
-1. **MYTOKENCOST_TOKEN** — JWT de acesso
-2. **PROJECT_ID** — ID do seu projeto
-3. **API_ID** — ID da API (Anthropic, OpenAI, etc)
-4. **ANTHROPIC_KEY** (ou sua chave da API) — sua chave real
-5. **BACKEND_URL** — padrão: `https://mytokencost.up.railway.app`
+1. **MYTOKENCOST_TOKEN** — JWT de acesso (aba Integração → "Copiar Token")
+2. **PROJECT_ID** — ID do projeto (aba Integração → "Copiar Project ID")
+3. **API_ID** — ID da API (aba Integração → "Copiar API ID")
+4. **ANTHROPIC_KEY** — a chave real da Anthropic (você fornece)
+5. **BACKEND_URL** — `https://mytokencost.up.railway.app`
 
-Adicione ao seu `.env`:
+Adicione ao `.env` do dev:
 ```
 MYTOKENCOST_TOKEN=eyJhbGc...
-PROJECT_ID=01469db5-8cb9-...
-API_ID=e980666b-b3ee-...
+PROJECT_ID=a9af06d3-...
+API_ID=9d209942-...
 ANTHROPIC_KEY=sk-ant-xxxxx
 BACKEND_URL=https://mytokencost.up.railway.app
 ```
 
 ---
 
-## **Exemplos Rápidos (Opção Fácil)**
-
-### Node.js
-```javascript
-const response = await fetch('https://mytokencost.up.railway.app/api/integrations/validate-key', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ provider_key: process.env.ANTHROPIC_KEY })
-});
-
-const data = await response.json();
-console.log(data.provider, data.models);
-// → anthropic ["claude-3-5-sonnet-20241022", ...]
-```
-
-### Python
-```python
-import requests
-
-resp = requests.post(
-  'https://mytokencost.up.railway.app/api/integrations/validate-key',
-  json={'provider_key': os.getenv('ANTHROPIC_KEY')}
-)
-data = resp.json()
-print(data['provider'], data['models'])
-```
-
-### cURL
-```bash
-curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
-  -H "Content-Type: application/json" \
-  -d '{"provider_key":"sk-ant-xxxxx"}'
-```
-
----
-
-## **Node.js (JavaScript/TypeScript) - Opção Completa**
+## **Node.js (JavaScript/TypeScript) — Completo**
 
 ### 1. Instale o SDK
 ```bash
 npm install @contador-tokens/anthropic-proxy
 ```
 
-### 2. Use no seu código
-**Antes (seu código atual):**
+### 2. Troque no código
+**Antes:**
 ```javascript
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -110,7 +96,7 @@ const client = new Anthropic({
 });
 
 const msg = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Olá' }]
 });
@@ -130,7 +116,7 @@ const client = new CountedAnthropic({
 });
 
 const msg = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Olá' }]
 });
@@ -141,12 +127,18 @@ const msg = await client.messages.create({
 
 ## **Python (com Anthropic)**
 
-Para Python, você precisa criar um wrapper simples (seu SDK não existe ainda em Python):
+Para Python, o dev precisa criar um wrapper simples (o SDK ainda não existe em Python):
 
 ```python
 import os
 import requests
 from anthropic import Anthropic
+
+MODEL_PRICES = {
+    'claude-opus-4-8': {'input': 0.000005, 'output': 0.000025},
+    'claude-sonnet-5': {'input': 0.000003, 'output': 0.000015},
+    'claude-haiku-4-5': {'input': 0.000001, 'output': 0.000005},
+}
 
 class CountedAnthropic(Anthropic):
     def __init__(self, **kwargs):
@@ -155,19 +147,14 @@ class CountedAnthropic(Anthropic):
         self.project_id = os.getenv('PROJECT_ID')
         self.api_id = os.getenv('API_ID')
         self.backend_url = os.getenv('BACKEND_URL', 'https://mytokencost.up.railway.app')
-    
+
     def _record_cost(self, model, input_tokens, output_tokens):
         """Registra custo no MyTokenCost"""
         try:
             total_tokens = input_tokens + output_tokens
-            # Usar preços do seu modelo
-            prices = {
-                'claude-3-5-sonnet-20241022': {'input': 0.000003, 'output': 0.000015},
-                'claude-3-opus-20250219': {'input': 0.000015, 'output': 0.00075},
-            }
-            pricing = prices.get(model, prices['claude-3-5-sonnet-20241022'])
+            pricing = MODEL_PRICES.get(model, MODEL_PRICES['claude-sonnet-5'])
             cost = input_tokens * pricing['input'] + output_tokens * pricing['output']
-            
+
             requests.post(
                 f'{self.backend_url}/api/costs',
                 headers={
@@ -190,7 +177,7 @@ class CountedAnthropic(Anthropic):
 client = CountedAnthropic(api_key=os.getenv('ANTHROPIC_KEY'))
 
 response = client.messages.create(
-    model='claude-3-5-sonnet-20241022',
+    model='claude-sonnet-5',
     max_tokens=1024,
     messages=[{'role': 'user', 'content': 'Olá'}]
 )
@@ -214,6 +201,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -238,7 +226,9 @@ func recordCost(model string, inputTokens, outputTokens int) error {
 	backendURL := os.Getenv("BACKEND_URL")
 
 	prices := map[string]map[string]float64{
-		"claude-3-5-sonnet-20241022": {"input": 0.000003, "output": 0.000015},
+		"claude-opus-4-8":  {"input": 0.000005, "output": 0.000025},
+		"claude-sonnet-5":  {"input": 0.000003, "output": 0.000015},
+		"claude-haiku-4-5": {"input": 0.000001, "output": 0.000005},
 	}
 
 	pricing := prices[model]
@@ -266,16 +256,16 @@ func recordCost(model string, inputTokens, outputTokens int) error {
 func main() {
 	client := anthropic.NewClient()
 
-	response, _ := client.Messages.New(context.Background(), &anthropic.MessageNewParams{
-		Model:     anthropic.F("claude-3-5-sonnet-20241022"),
-		MaxTokens: anthropic.F(int64(1024)),
-		Messages: anthropic.F([]anthropic.MessageParamUnion{
-			anthropic.UserMessage("Olá"),
-		}),
+	response, _ := client.Messages.New(context.Background(), anthropic.MessageNewParams{
+		Model:     anthropic.ModelClaudeSonnet5,
+		MaxTokens: 1024,
+		Messages: []anthropic.MessageParam{
+			anthropic.NewUserMessage(anthropic.NewTextBlock("Olá")),
+		},
 	})
 
 	recordCost(
-		"claude-3-5-sonnet-20241022",
+		string(response.Model),
 		int(response.Usage.InputTokens),
 		int(response.Usage.OutputTokens),
 	)
@@ -284,7 +274,7 @@ func main() {
 
 ---
 
-## **Resumo: O que Muda?**
+## **Resumo: O que Mudou?**
 
 | Stack | O que fazer |
 |-------|-----------|
@@ -295,6 +285,16 @@ func main() {
 
 ---
 
+## **Modelos Suportados (Claude)**
+
+| Modelo | Input | Output |
+|--------|-------|--------|
+| `claude-opus-4-8` | $5.00 / 1M tokens | $25.00 / 1M tokens |
+| `claude-sonnet-5` | $3.00 / 1M tokens | $15.00 / 1M tokens |
+| `claude-haiku-4-5` | $1.00 / 1M tokens | $5.00 / 1M tokens |
+
+---
+
 ## **Teste Rápido**
 
 Para verificar se está funcionando:
@@ -302,7 +302,7 @@ Para verificar se está funcionando:
 2. Vá pra aba "Dashboard" no MyTokenCost
 3. Veja o custo aparecer em tempo real em "Por API"
 
-✅ Se apareceu = tudo certo!  
+✅ Se apareceu = tudo certo!
 ❌ Se não apareceu = verifique token/IDs
 
 ---

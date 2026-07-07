@@ -19,10 +19,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 // Preços de token por modelo (atualizar conforme necessário)
 const MODEL_PRICES = {
-  "claude-3-5-sonnet-20241022": { input: 0.000003, output: 0.000015 },
-  "claude-3-opus-20250219": { input: 0.000015, output: 0.00075 },
-  "claude-3-haiku-20240307": { input: 0.00000080, output: 0.000004 },
-  "claude-3-sonnet-20240229": { input: 0.000003, output: 0.000015 },
+  "claude-opus-4-8": { input: 0.000005, output: 0.000025 },
+  "claude-sonnet-5": { input: 0.000003, output: 0.000015 },
+  "claude-haiku-4-5": { input: 0.000001, output: 0.000005 },
 };
 
 export class CountedAnthropic extends Anthropic {
@@ -64,7 +63,7 @@ export class CountedAnthropic extends Anthropic {
 
   async _recordCost(response, params) {
     const model = params.model || "unknown";
-    const prices = MODEL_PRICES[model] || MODEL_PRICES["claude-3-5-sonnet-20241022"];
+    const prices = MODEL_PRICES[model] || MODEL_PRICES["claude-sonnet-5"];
 
     const inputTokens = response.usage.input_tokens;
     const outputTokens = response.usage.output_tokens;
@@ -81,7 +80,7 @@ export class CountedAnthropic extends Anthropic {
       });
       console.log("[CountedAnthropic] Cost:", {
         value: cost.toFixed(6),
-        currency: "BRL",
+        currency: "USD",
       });
     }
 

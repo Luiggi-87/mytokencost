@@ -83,7 +83,7 @@ const client = new CountedAnthropic({
 
 // Use normalmente - custos registram automaticamente
 const msg = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Olá' }]
 });`;
@@ -281,6 +281,22 @@ const msg = await client.messages.create({
                       </div>
                     ))}
                   </div>
+
+                  {validationResult.unpriced_models && validationResult.unpriced_models.length > 0 && (
+                    <div style={{
+                      background: 'rgba(234, 179, 8, 0.1)',
+                      borderLeft: '3px solid #eab308',
+                      padding: '0.6rem',
+                      borderRadius: '0.3rem',
+                      fontSize: '0.8rem',
+                      marginBottom: '1rem'
+                    }}>
+                      <strong>Modelos disponíveis sem preço configurado:</strong>
+                      <div style={{ color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                        {validationResult.unpriced_models.join(', ')}
+                      </div>
+                    </div>
+                  )}
 
                   {validationResult.billing && (
                     <div style={{

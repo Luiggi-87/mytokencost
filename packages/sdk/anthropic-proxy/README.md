@@ -26,7 +26,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: "claude-3-5-sonnet-20241022",
+  model: "claude-sonnet-5",
   max_tokens: 1024,
   messages: [
     { role: "user", content: "Hello, Claude!" }
@@ -46,7 +46,7 @@ const client = new CountedAnthropic({
 
 // Mesmo código! Custos rastreados automaticamente ✨
 const message = await client.messages.create({
-  model: "claude-3-5-sonnet-20241022",
+  model: "claude-sonnet-5",
   max_tokens: 1024,
   messages: [
     { role: "user", content: "Hello, Claude!" }
@@ -72,31 +72,30 @@ Para cada chamada:
 - **Projeto**: qual projeto gerou o custo
 - **API**: `anthropic-claude`
 - **Tokens**: entrada + saída
-- **Custo**: calculado em R$
+- **Custo**: calculado em USD
 - **Modelo**: qual modelo foi usado
 - **Data**: quando aconteceu
 
 No dashboard você verá:
 ```
 Projeto: Agente de Vendas
-├── Custo Total: R$ 45,50
+├── Custo Total: $ 45.50
 ├── Tokens Usados: 125.000
 └── Histórico
-    ├── Claude 3.5 Sonnet: R$ 30
-    ├── Claude 3 Opus: R$ 15,50
+    ├── Claude Sonnet 5: $ 30
+    ├── Claude Opus 4.8: $ 15.50
     └── ...
 ```
 
 ## 💰 Preços Suportados
 
-Preços pré-configurados em BRL (Real):
+Preços pré-configurados em USD (Dólar):
 
-| Modelo | Input | Output |
+| Modelo | Input (por 1M tokens) | Output (por 1M tokens) |
 |--------|-------|--------|
-| Claude 3.5 Sonnet | R$ 0,000003 | R$ 0,000015 |
-| Claude 3 Opus | R$ 0,000015 | R$ 0,00075 |
-| Claude 3 Haiku | R$ 0,00000080 | R$ 0,000004 |
-| Claude 3 Sonnet | R$ 0,000003 | R$ 0,000015 |
+| Claude Opus 4.8 | $5.00 | $25.00 |
+| Claude Sonnet 5 | $3.00 | $15.00 |
+| Claude Haiku 4.5 | $1.00 | $5.00 |
 
 **Atualizar preços**:
 Edite `MODEL_PRICES` em `index.js`
