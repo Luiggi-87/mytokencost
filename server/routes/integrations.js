@@ -37,9 +37,9 @@ router.post('/validate-key', async (req, res) => {
     if (provider === 'anthropic') {
       try {
         const modelsToTest = [
-          'claude-3-5-sonnet-20241022',
-          'claude-3-opus-20250219',
-          'claude-3-haiku-20240307'
+          'claude-opus-4-8',
+          'claude-sonnet-5',
+          'claude-haiku-4-5'
         ];
 
         // Testar todos os modelos em paralelo
