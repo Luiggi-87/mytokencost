@@ -56,12 +56,12 @@ export async function chargeStripeCustomer(projectId, amount, description) {
     const charge = await stripe.charges.create({
       customer: project.stripe_customer_id,
       amount: Math.round(amount * 100), // em centavos
-      currency: "brl",
+      currency: "usd",
       description: description || `Custos de API - ${projectId}`,
       metadata: { projectId, amount },
     });
 
-    console.log(`✅ Cobrança Stripe: R$ ${amount} para projeto ${projectId}`);
+    console.log(`✅ Cobrança Stripe: $ ${amount} para projeto ${projectId}`);
     return charge;
   } catch (error) {
     console.error("Erro ao cobrar Stripe:", error);

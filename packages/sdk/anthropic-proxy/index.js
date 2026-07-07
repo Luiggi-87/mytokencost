@@ -69,7 +69,7 @@ export class CountedAnthropic extends Anthropic {
     const outputTokens = response.usage.output_tokens;
     const totalTokens = inputTokens + outputTokens;
 
-    // Calcular custo em R$
+    // Calcular custo em USD
     const cost = inputTokens * prices.input + outputTokens * prices.output;
 
     if (this.debug) {

@@ -71,7 +71,11 @@ export default function IntegrationSetup({ token, userId }) {
     }
   };
 
-  const exampleCode = `import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
+  const selectedApiObj = apis.find(a => a.id === selectedApi);
+  const apiType = selectedApiObj?.type || 'anthropic';
+
+  const CODE_TEMPLATES = {
+    anthropic: (model) => `import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -83,10 +87,74 @@ const client = new CountedAnthropic({
 
 // Use normalmente - custos registram automaticamente
 const msg = await client.messages.create({
-  model: 'claude-sonnet-5',
+  model: '${model || 'claude-sonnet-5'}',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Olá' }]
+});`,
+    openai: (model) => `import { CountedOpenAI } from '@contador-tokens/openai-proxy';
+
+const client = new CountedOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.chat.completions.create({
+  model: '${model || 'gpt-4o'}',
+  messages: [{ role: 'user', content: 'Olá' }]
+});`,
+    google: (model) => `import { CountedGemini } from '@contador-tokens/gemini-proxy';
+
+const client = new CountedGemini({
+  apiKey: process.env.GEMINI_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.generateContent({
+  model: '${model || 'gemini-2.0-flash'}',
+  contents: [{ role: 'user', parts: [{ text: 'Olá' }] }]
+});`
+  };
+
+  // Ainda não temos um pacote proxy pronto para este provedor — mostra
+  // como registrar o custo manualmente via POST direto no backend.
+  const genericTemplate = () => `// Não existe SDK proxy pronto para este provedor ainda.
+// Depois de cada chamada de API, registre o custo manualmente:
+
+const response = await fetch('${backendUrl}/api/costs', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${token}'
+  },
+  body: JSON.stringify({
+    project_id: '${selectedProject}',
+    api_id: '${selectedApi}',
+    amount: custoCalculado,   // calcule com base no preço do modelo usado
+    units: totalDeTokens,
+    unit_type: 'tokens',
+    description: 'Descrição da chamada'
+  })
 });`;
+
+  const hasPackage = ['anthropic', 'openai', 'google'].includes(apiType);
+
+  const packageName = {
+    anthropic: '@contador-tokens/anthropic-proxy',
+    openai: '@contador-tokens/openai-proxy',
+    google: '@contador-tokens/gemini-proxy'
+  }[apiType];
+
+  const exampleCode = hasPackage
+    ? CODE_TEMPLATES[apiType](selectedModel)
+    : genericTemplate();
 
   return (
     <div className="manager">
@@ -336,18 +404,36 @@ const msg = await client.messages.create({
 
       <div className="manager-list">
         <h2><IconPlug /> Exemplo de Código</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-          Copie e cole este código no seu projeto Node.js. Substitua <code>process.env.ANTHROPIC_KEY</code> pela sua chave real da Anthropic.
+        <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+          {hasPackage
+            ? 'Instale o pacote e cole este código no seu projeto Node.js:'
+            : 'Ainda não temos um pacote SDK pronto para este provedor. Use o registro manual abaixo:'}
         </p>
+        {hasPackage && (
+          <pre style={{
+            background: 'var(--bg-lighter)',
+            padding: '0.6rem 1rem',
+            borderRadius: '0.4rem',
+            overflowX: 'auto',
+            fontFamily: 'monospace',
+            fontSize: '0.8rem',
+            marginBottom: '1rem',
+            maxWidth: '100%'
+          }}>
+            npm install {packageName}
+          </pre>
+        )}
         <pre style={{
           background: 'var(--bg-lighter)',
           padding: '1rem',
           borderRadius: '0.4rem',
-          overflow: 'auto',
+          overflowX: 'auto',
           fontFamily: 'monospace',
           fontSize: '0.8rem',
           lineHeight: '1.5',
-          marginBottom: '1rem'
+          marginBottom: '1rem',
+          maxWidth: '100%',
+          whiteSpace: 'pre'
         }}>
           {exampleCode}
         </pre>

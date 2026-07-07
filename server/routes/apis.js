@@ -24,6 +24,10 @@ const API_TYPES = {
   mistral: { name: 'Mistral', icon: '⚡' },
   groq: { name: 'Groq', icon: '⚙️' },
   replicate: { name: 'Replicate', icon: '🎬' },
+  perplexity: { name: 'Perplexity AI', icon: '🔎' },
+  bedrock: { name: 'AWS Bedrock', icon: '☁️' },
+  azure: { name: 'Azure OpenAI', icon: '☁️' },
+  together: { name: 'Together AI', icon: '🤝' },
   other: { name: 'Outro', icon: '📦' }
 };
 

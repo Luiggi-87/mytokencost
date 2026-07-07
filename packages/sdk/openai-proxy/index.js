@@ -6,10 +6,9 @@ import OpenAI from "openai";
  */
 
 const MODEL_PRICES = {
-  "gpt-4": { input: 0.00003, output: 0.00006 },
+  "gpt-4o": { input: 0.0000050, output: 0.000015 },
   "gpt-4-turbo": { input: 0.00001, output: 0.00003 },
   "gpt-3.5-turbo": { input: 0.0000005, output: 0.0000015 },
-  "gpt-3.5-turbo-16k": { input: 0.000003, output: 0.000004 },
 };
 
 export class CountedOpenAI extends OpenAI {
@@ -49,8 +48,8 @@ export class CountedOpenAI extends OpenAI {
   }
 
   async _recordCost(response, params) {
-    const model = params.model || "gpt-3.5-turbo";
-    const prices = MODEL_PRICES[model] || MODEL_PRICES["gpt-3.5-turbo"];
+    const model = params.model || "gpt-4o";
+    const prices = MODEL_PRICES[model] || MODEL_PRICES["gpt-4o"];
 
     const inputTokens = response.usage.prompt_tokens;
     const outputTokens = response.usage.completion_tokens;
@@ -66,7 +65,7 @@ export class CountedOpenAI extends OpenAI {
       });
       console.log("[CountedOpenAI] Cost:", {
         value: cost.toFixed(6),
-        currency: "BRL",
+        currency: "USD",
       });
     }
 

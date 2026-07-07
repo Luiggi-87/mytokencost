@@ -10,47 +10,40 @@
   "openai-gpt": {
     "name": "OpenAI GPT",
     "models": {
-      "gpt-4": { "input": 0.00003, "output": 0.00006 },
-      "gpt-4-turbo": { "input": 0.00001, "output": 0.00003 },
       "gpt-4o": { "input": 0.0000050, "output": 0.000015 },
-      "gpt-3.5-turbo": { "input": 0.0000005, "output": 0.0000015 },
-      "gpt-3.5-turbo-16k": { "input": 0.000003, "output": 0.000004 }
+      "gpt-4o-mini": { "input": 0.00000015, "output": 0.0000006 },
+      "gpt-4-turbo": { "input": 0.00001, "output": 0.00003 },
+      "gpt-3.5-turbo": { "input": 0.0000005, "output": 0.0000015 }
     }
   },
   "google-gemini": {
     "name": "Google Gemini",
     "models": {
-      "gemini-1.5-pro": { "input": 0.00000175, "output": 0.0000070 },
-      "gemini-1.5-flash": { "input": 0.000000075, "output": 0.00000030 },
-      "gemini-2.0-flash": { "input": 0.000000075, "output": 0.00000030 },
-      "gemini-pro": { "input": 0.0000005, "output": 0.0000015 }
+      "gemini-2.0-flash": { "input": 0.000000075, "output": 0.00000030 }
     }
   },
   "groq": {
     "name": "Groq",
     "models": {
-      "mixtral-8x7b-32768": { "input": 0.00000027, "output": 0.00000054 },
-      "llama2-70b-4096": { "input": 0.00000070, "output": 0.00000080 },
       "llama-3.3-70b-versatile": { "input": 0.00000059, "output": 0.00000079 },
-      "gemma-7b-it": { "input": 0.00000007, "output": 0.00000007 }
+      "llama-3.1-8b-instant": { "input": 0.00000005, "output": 0.00000008 },
+      "gemma2-9b-it": { "input": 0.0000002, "output": 0.0000002 }
     }
   },
   "mistral": {
     "name": "Mistral AI",
     "models": {
-      "mistral-large-latest": { "input": 0.0000027, "output": 0.0000081 },
-      "mistral-medium-latest": { "input": 0.0000027, "output": 0.0000081 },
-      "mistral-small-latest": { "input": 0.00000014, "output": 0.00000042 },
-      "mistral-tiny": { "input": 0.00000014, "output": 0.00000042 }
+      "mistral-large-latest": { "input": 0.000002, "output": 0.000006 },
+      "mistral-medium-latest": { "input": 0.0000004, "output": 0.000002 },
+      "mistral-small-latest": { "input": 0.0000001, "output": 0.0000003 }
     }
   },
   "cohere": {
     "name": "Cohere",
     "models": {
-      "command": { "input": 0.000001, "output": 0.000002 },
-      "command-light": { "input": 0.0000003, "output": 0.0000006 },
-      "command-nightly": { "input": 0.000001, "output": 0.000002 },
-      "command-r-plus": { "input": 0.000003, "output": 0.000015 }
+      "command-r": { "input": 0.00000015, "output": 0.0000006 },
+      "command-r-plus": { "input": 0.0000025, "output": 0.00001 },
+      "command-a": { "input": 0.0000025, "output": 0.00001 }
     }
   },
   "huggingface": {
@@ -82,26 +75,25 @@
   "perplexity": {
     "name": "Perplexity AI",
     "models": {
-      "pplx-7b-online": { "input": 0.0000007, "output": 0.0000028 },
-      "pplx-70b-online": { "input": 0.0000070, "output": 0.0000280 },
-      "pplx-8x7b-online": { "input": 0.0000020, "output": 0.0000200 },
-      "sonar-small-chat": { "input": 0.0000005, "output": 0.0000020 }
+      "sonar": { "input": 0.000001, "output": 0.000001 },
+      "sonar-pro": { "input": 0.000003, "output": 0.000015 },
+      "sonar-reasoning": { "input": 0.000001, "output": 0.000005 }
     }
   },
   "claude-ai-bedrock": {
     "name": "AWS Bedrock (Claude)",
     "models": {
-      "anthropic.claude-3-sonnet": { "input": 0.000003, "output": 0.000015 },
-      "anthropic.claude-3-haiku": { "input": 0.00000080, "output": 0.000004 },
-      "anthropic.claude-instant": { "input": 0.0000008, "output": 0.0000024 }
+      "anthropic.claude-opus-4-8": { "input": 0.000005, "output": 0.000025 },
+      "anthropic.claude-sonnet-5": { "input": 0.000003, "output": 0.000015 },
+      "anthropic.claude-haiku-4-5": { "input": 0.000001, "output": 0.000005 }
     }
   },
   "azure-openai": {
     "name": "Azure OpenAI",
     "models": {
-      "gpt-4": { "input": 0.00003, "output": 0.00006 },
-      "gpt-4-turbo": { "input": 0.00001, "output": 0.00003 },
-      "gpt-35-turbo": { "input": 0.0000015, "output": 0.0000020 }
+      "gpt-4o": { "input": 0.0000050, "output": 0.000015 },
+      "gpt-4o-mini": { "input": 0.00000015, "output": 0.0000006 },
+      "gpt-4-turbo": { "input": 0.00001, "output": 0.00003 }
     }
   },
   "together-ai": {

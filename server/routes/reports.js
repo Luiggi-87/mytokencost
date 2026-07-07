@@ -100,7 +100,7 @@ function generatePDF(res, costs, startDate, endDate) {
     doc.text(new Date(cost.date).toLocaleDateString("pt-BR"), 50, y);
     doc.text(cost.project_name || "-", 150, y);
     doc.text(cost.api_name || "-", 300, y);
-    doc.text(`R$ ${cost.amount.toFixed(2)}`, 450, y);
+    doc.text(`$ ${cost.amount.toFixed(2)}`, 450, y);
 
     total += cost.amount;
     y += 15;
@@ -110,7 +110,7 @@ function generatePDF(res, costs, startDate, endDate) {
   y += 10;
   doc.moveTo(50, y).lineTo(550, y).stroke();
   y += 10;
-  doc.fontSize(12).text(`TOTAL: R$ ${total.toFixed(2)}`, 450, y);
+  doc.fontSize(12).text(`TOTAL: $ ${total.toFixed(2)}`, 450, y);
 
   doc.end();
 }
@@ -122,7 +122,7 @@ function generateCSV(res, costs) {
   res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
 
   // Cabeçalho
-  const rows = [["Data", "Projeto", "API", "Quantidade", "Tipo", "Valor (R$)"]];
+  const rows = [["Data", "Projeto", "API", "Quantidade", "Tipo", "Valor ($)"]];
 
   for (const cost of costs) {
     rows.push([

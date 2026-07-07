@@ -6,9 +6,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
  */
 
 const MODEL_PRICES = {
-  "gemini-1.5-pro": { input: 0.00000175, output: 0.0000070 },
-  "gemini-1.5-flash": { input: 0.000000075, output: 0.00000030 },
-  "gemini-pro": { input: 0.0000005, output: 0.0000015 },
+  "gemini-2.0-flash": { input: 0.000000075, output: 0.00000030 },
 };
 
 export class CountedGemini {
@@ -42,7 +40,7 @@ export class CountedGemini {
   }
 
   async _recordCost(response, model) {
-    const prices = MODEL_PRICES[model] || MODEL_PRICES["gemini-pro"];
+    const prices = MODEL_PRICES[model] || MODEL_PRICES["gemini-2.0-flash"];
 
     // Gemini retorna token count diferente
     const usageMetadata = response.usageMetadata;
@@ -60,7 +58,7 @@ export class CountedGemini {
       });
       console.log("[CountedGemini] Cost:", {
         value: cost.toFixed(6),
-        currency: "BRL",
+        currency: "USD",
       });
     }
 
