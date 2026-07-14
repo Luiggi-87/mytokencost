@@ -1,4 +1,4 @@
-# @contador-tokens/anthropic-proxy
+# @luiggi-87/anthropic-proxy
 
 SDK proxy para Anthropic Claude que **automaticamente rastreia custos** e registra no Contador de Tokens.
 
@@ -12,7 +12,7 @@ Substitua suas importações do Anthropic por este proxy e:
 ## 📦 Instalação
 
 ```bash
-npm install @contador-tokens/anthropic-proxy
+npm install @luiggi-87/anthropic-proxy
 ```
 
 ## 🚀 Uso
@@ -36,7 +36,7 @@ const message = await client.messages.create({
 
 ### Depois (com tracking automático)
 ```javascript
-import { CountedAnthropic } from "@contador-tokens/anthropic-proxy";
+import { CountedAnthropic } from "@luiggi-87/anthropic-proxy";
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,

@@ -83,14 +83,14 @@ Guia completo: [DEPLOY.md](DEPLOY.md) — Railway (backend), Netlify (frontend),
 ## 💻 SDKs com rastreamento automático
 
 ```bash
-npm install @contador-tokens/anthropic-proxy
+npm install @luiggi-87/anthropic-proxy
 ```
 ```javascript
-import { CountedAnthropic } from "@contador-tokens/anthropic-proxy";
+import { CountedAnthropic } from "@luiggi-87/anthropic-proxy";
 const client = new CountedAnthropic({ apiKey: process.env.ANTHROPIC_KEY, projectId: "seu-projeto" });
 // Custos rastreados automaticamente
 ```
-Também disponível: `@contador-tokens/openai-proxy`, `@contador-tokens/gemini-proxy`.
+Também disponível: `@luiggi-87/openai-proxy`, `@luiggi-87/gemini-proxy`.
 
 ## 🔐 Segurança
 

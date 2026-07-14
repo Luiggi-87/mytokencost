@@ -1,16 +1,31 @@
 {
-  "name": "@contador-tokens/openai-proxy",
+  "name": "@luiggi-87/openai-proxy",
   "version": "1.0.0",
-  "description": "OpenAI SDK wrapper that automatically tracks API costs",
+  "description": "OpenAI SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",
   "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
   "keywords": [
     "openai",
     "gpt",
     "cost-tracking",
-    "billing"
+    "billing",
+    "mytokencost"
   ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/openai-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "openai": "^4.0.0"
+    "openai": "^6.46.0"
   }
 }

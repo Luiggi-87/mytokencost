@@ -1,9 +1,13 @@
 {
-  "name": "@contador-tokens/anthropic-proxy",
+  "name": "@luiggi-87/anthropic-proxy",
   "version": "1.0.0",
-  "description": "Anthropic Claude SDK wrapper that automatically tracks API costs",
+  "description": "Anthropic Claude SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",
   "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
   "scripts": {
     "test": "node test.js"
   },
@@ -12,12 +16,21 @@
     "claude",
     "cost-tracking",
     "billing",
-    "api-proxy"
+    "api-proxy",
+    "mytokencost"
   ],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/anthropic-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.16.0"
+    "@anthropic-ai/sdk": "^0.111.0"
   },
   "devDependencies": {
     "dotenv": "^17.4.2"

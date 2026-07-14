@@ -11,7 +11,7 @@ A forma mais simples: vá na aba **Integração** do MyTokenCost, seção **"Exe
 O código copiado se parece com isto:
 
 ```javascript
-import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
+import { CountedAnthropic } from '@luiggi-87/anthropic-proxy';
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -29,7 +29,7 @@ const msg = await client.messages.create({
 });
 ```
 
-O dev só precisa: (1) instalar `npm install @contador-tokens/anthropic-proxy`, (2) trocar o import do `Anthropic` normal pelo `CountedAnthropic`, (3) colar a chave real da Anthropic na variável de ambiente `ANTHROPIC_KEY`. Nada mais muda no código dele.
+O dev só precisa: (1) instalar `npm install @luiggi-87/anthropic-proxy`, (2) trocar o import do `Anthropic` normal pelo `CountedAnthropic`, (3) colar a chave real da Anthropic na variável de ambiente `ANTHROPIC_KEY`. Nada mais muda no código dele.
 
 ---
 
@@ -83,7 +83,7 @@ BACKEND_URL=https://mytokencost.up.railway.app
 
 ### 1. Instale o SDK
 ```bash
-npm install @contador-tokens/anthropic-proxy
+npm install @luiggi-87/anthropic-proxy
 ```
 
 ### 2. Troque no código
@@ -104,7 +104,7 @@ const msg = await client.messages.create({
 
 **Depois (com tracking):**
 ```javascript
-import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
+import { CountedAnthropic } from '@luiggi-87/anthropic-proxy';
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -278,7 +278,7 @@ func main() {
 
 | Stack | O que fazer |
 |-------|-----------|
-| **Node.js** | Instalar `@contador-tokens/anthropic-proxy`, trocar 1 import + 1 construtor |
+| **Node.js** | Instalar `@luiggi-87/anthropic-proxy`, trocar 1 import + 1 construtor |
 | **Python** | Criar wrapper `CountedAnthropic`, chamar `_record_cost()` após cada request |
 | **Go** | Criar função `recordCost()`, chamar após cada request |
 | **Outro** | Fazer POST pro `/api/costs` com os dados do custo (model, tokens, valor) |

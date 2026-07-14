@@ -75,7 +75,7 @@ export default function IntegrationSetup({ token, userId }) {
   const apiType = selectedApiObj?.type || 'anthropic';
 
   const CODE_TEMPLATES = {
-    anthropic: (model) => `import { CountedAnthropic } from '@contador-tokens/anthropic-proxy';
+    anthropic: (model) => `import { CountedAnthropic } from '@luiggi-87/anthropic-proxy';
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -91,7 +91,7 @@ const msg = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Olá' }]
 });`,
-    openai: (model) => `import { CountedOpenAI } from '@contador-tokens/openai-proxy';
+    openai: (model) => `import { CountedOpenAI } from '@luiggi-87/openai-proxy';
 
 const client = new CountedOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -106,7 +106,7 @@ const msg = await client.chat.completions.create({
   model: '${model || 'gpt-4o'}',
   messages: [{ role: 'user', content: 'Olá' }]
 });`,
-    google: (model) => `import { CountedGemini } from '@contador-tokens/gemini-proxy';
+    google: (model) => `import { CountedGemini } from '@luiggi-87/gemini-proxy';
 
 const client = new CountedGemini({
   apiKey: process.env.GEMINI_API_KEY,
@@ -147,9 +147,9 @@ const response = await fetch('${backendUrl}/api/costs', {
   const hasPackage = ['anthropic', 'openai', 'google'].includes(apiType);
 
   const packageName = {
-    anthropic: '@contador-tokens/anthropic-proxy',
-    openai: '@contador-tokens/openai-proxy',
-    google: '@contador-tokens/gemini-proxy'
+    anthropic: '@luiggi-87/anthropic-proxy',
+    openai: '@luiggi-87/openai-proxy',
+    google: '@luiggi-87/gemini-proxy'
   }[apiType];
 
   const exampleCode = hasPackage
