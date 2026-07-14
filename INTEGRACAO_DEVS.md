@@ -295,6 +295,26 @@ func main() {
 
 ---
 
+## **Outros Provedores com Pacote Pronto**
+
+Além da Anthropic, também temos SDK proxy pronto pra:
+
+| Provedor | Pacote | Import |
+|----------|--------|--------|
+| OpenAI | `@luiggi-87/openai-proxy` | `import { CountedOpenAI } from '@luiggi-87/openai-proxy'` |
+| Google Gemini | `@luiggi-87/gemini-proxy` | `import { CountedGemini } from '@luiggi-87/gemini-proxy'` |
+| Groq | `@luiggi-87/groq-proxy` | `import { CountedGroq } from '@luiggi-87/groq-proxy'` |
+| Mistral AI | `@luiggi-87/mistral-proxy` | `import { CountedMistral } from '@luiggi-87/mistral-proxy'` |
+| Cohere | `@luiggi-87/cohere-proxy` | `import { CountedCohere } from '@luiggi-87/cohere-proxy'` |
+| Perplexity AI | `@luiggi-87/perplexity-proxy` | `import { CountedPerplexity } from '@luiggi-87/perplexity-proxy'` |
+| Together AI | `@luiggi-87/together-proxy` | `import { CountedTogether } from '@luiggi-87/together-proxy'` |
+
+O padrão de uso é o mesmo em todos: instala o pacote, troca o import do SDK oficial pela versão `Counted*`, passa `token`/`projectId`/`apiId`/`backendUrl` no construtor. O nome do método de chat varia por provedor (ex: `chat.completions.create` na maioria, mas `chat.complete` na Mistral e `chat` direto na Cohere) — a aba **Integração** do MyTokenCost já gera o código certo pra cada um quando você seleciona a API.
+
+Provedores sem pacote pronto ainda (Hugging Face, Replicate, Firecrawl, AWS Bedrock, Azure OpenAI): use o registro manual via POST `/api/costs`, mostrado automaticamente na aba Integração quando você seleciona um desses.
+
+---
+
 ## **Teste Rápido**
 
 Para verificar se está funcionando:

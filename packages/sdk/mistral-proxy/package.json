@@ -1,0 +1,30 @@
+{
+  "name": "@luiggi-87/mistral-proxy",
+  "version": "1.0.0",
+  "description": "Mistral AI SDK wrapper that automatically tracks API costs to MyTokenCost",
+  "main": "index.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "mistral",
+    "cost-tracking",
+    "billing",
+    "mytokencost"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/mistral-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@mistralai/mistralai": "^2.4.1"
+  }
+}

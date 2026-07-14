@@ -1,0 +1,31 @@
+{
+  "name": "@luiggi-87/groq-proxy",
+  "version": "1.0.0",
+  "description": "Groq SDK wrapper that automatically tracks API costs to MyTokenCost",
+  "main": "index.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "groq",
+    "llama",
+    "cost-tracking",
+    "billing",
+    "mytokencost"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/groq-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "groq-sdk": "^1.3.0"
+  }
+}

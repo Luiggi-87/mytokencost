@@ -47,6 +47,18 @@ async function fetchLiveGeminiModels(apiKey) {
   return (data.models || []).map(m => m.name.replace('models/', ''));
 }
 
+async function fetchLiveGroqModels(apiKey) {
+  const res = await fetch('https://api.groq.com/openai/v1/models', {
+    headers: { 'Authorization': `Bearer ${apiKey}` }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return (data.data || []).map(m => m.id);
+}
+
 // A API de modelos de alguns provedores (ex: Anthropic) retorna o ID com
 // data (claude-haiku-4-5-20251001) mesmo quando nossa tabela de preços usa
 // o alias curto (claude-haiku-4-5). Resolve isso casando por prefixo.
@@ -109,6 +121,10 @@ router.post('/validate-key', async (req, res) => {
     let provider = null;
     if (provider_key.startsWith('sk-ant-')) {
       provider = 'anthropic';
+    } else if (provider_key.startsWith('gsk_')) {
+      provider = 'groq';
+    } else if (provider_key.startsWith('pplx-')) {
+      provider = 'perplexity';
     } else if (provider_key.startsWith('sk-') || provider_key.startsWith('sk_')) {
       provider = 'openai';
     } else if (provider_key.includes('AIza')) {
@@ -289,6 +305,105 @@ router.post('/validate-key', async (req, res) => {
         usage: {
           note: 'Consumo detalhado disponível no console do Google Cloud'
         }
+      };
+    }
+
+    // Validar Groq
+    if (provider === 'groq') {
+      let liveModelIds;
+      try {
+        liveModelIds = await fetchLiveGroqModels(provider_key);
+      } catch (error) {
+        return res.status(401).json({
+          provider: 'groq',
+          name: 'Groq',
+          is_valid: false,
+          error: 'Chave inválida ou expirada',
+          details: error.message
+        });
+      }
+
+      const { resolvedPairs, unpricedModels } = matchCuratedToLiveModels('groq', liveModelIds);
+
+      const modelResults = await testModelsWithPricing(resolvedPairs, 'groq', (model) =>
+        fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${provider_key}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'ok' }]
+          })
+        }).then(async r => {
+          if (!r.ok) {
+            const e = await r.json().catch(() => ({}));
+            throw new Error(e.error?.message || r.statusText);
+          }
+          const data = await r.json();
+          return { input: data.usage.prompt_tokens, output: data.usage.completion_tokens };
+        })
+      );
+
+      result = {
+        provider: 'groq',
+        name: 'Groq',
+        is_valid: true,
+        models_tested: modelResults,
+        available_models: liveModelIds,
+        unpriced_models: unpricedModels,
+        billing: null
+      };
+    }
+
+    // Validar Perplexity
+    // Nota: a Perplexity não expõe um endpoint público de lista de modelos
+    // ativos, então aqui testamos direto os modelos da nossa tabela de
+    // preços (sem o cruzamento "live" que os outros provedores têm).
+    if (provider === 'perplexity') {
+      const curatedModels = Object.keys(prices.perplexity.models);
+      const pairs = curatedModels.map(m => ({ curated: m, live: m }));
+
+      const modelResults = await testModelsWithPricing(pairs, 'perplexity', (model) =>
+        fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${provider_key}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 10,
+            messages: [{ role: 'user', content: 'ok' }]
+          })
+        }).then(async r => {
+          if (!r.ok) {
+            const e = await r.json().catch(() => ({}));
+            throw new Error(e.error?.message || r.statusText);
+          }
+          const data = await r.json();
+          return { input: data.usage.prompt_tokens, output: data.usage.completion_tokens };
+        })
+      );
+
+      if (modelResults.length === 0) {
+        return res.status(401).json({
+          provider: 'perplexity',
+          name: 'Perplexity AI',
+          is_valid: false,
+          error: 'Chave inválida ou expirada',
+          details: 'Nenhum modelo respondeu com sucesso'
+        });
+      }
+
+      result = {
+        provider: 'perplexity',
+        name: 'Perplexity AI',
+        is_valid: true,
+        models_tested: modelResults,
+        billing: null
       };
     }
 

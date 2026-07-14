@@ -1,0 +1,31 @@
+{
+  "name": "@luiggi-87/cohere-proxy",
+  "version": "1.0.0",
+  "description": "Cohere SDK wrapper that automatically tracks API costs to MyTokenCost",
+  "main": "index.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "cohere",
+    "command",
+    "cost-tracking",
+    "billing",
+    "mytokencost"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/cohere-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "cohere-ai": "^8.0.0"
+  }
+}

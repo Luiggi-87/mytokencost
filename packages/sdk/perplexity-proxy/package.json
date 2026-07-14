@@ -1,0 +1,31 @@
+{
+  "name": "@luiggi-87/perplexity-proxy",
+  "version": "1.0.0",
+  "description": "Perplexity SDK wrapper that automatically tracks API costs to MyTokenCost",
+  "main": "index.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "perplexity",
+    "sonar",
+    "cost-tracking",
+    "billing",
+    "mytokencost"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/perplexity-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@perplexity-ai/perplexity_ai": "^0.35.0"
+  }
+}

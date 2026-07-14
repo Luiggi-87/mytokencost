@@ -1,0 +1,31 @@
+{
+  "name": "@luiggi-87/together-proxy",
+  "version": "1.0.0",
+  "description": "Together AI SDK wrapper that automatically tracks API costs to MyTokenCost",
+  "main": "index.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "together",
+    "together-ai",
+    "cost-tracking",
+    "billing",
+    "mytokencost"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luiggi-87/mytokencost.git",
+    "directory": "packages/sdk/together-proxy"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "together-ai": "^0.40.0"
+  }
+}

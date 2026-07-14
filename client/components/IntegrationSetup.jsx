@@ -120,6 +120,81 @@ const client = new CountedGemini({
 const msg = await client.generateContent({
   model: '${model || 'gemini-2.0-flash'}',
   contents: [{ role: 'user', parts: [{ text: 'Olá' }] }]
+});`,
+    groq: (model) => `import { CountedGroq } from '@luiggi-87/groq-proxy';
+
+const client = new CountedGroq({
+  apiKey: process.env.GROQ_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.chat.completions.create({
+  model: '${model || 'llama-3.3-70b-versatile'}',
+  messages: [{ role: 'user', content: 'Olá' }]
+});`,
+    mistral: (model) => `import { CountedMistral } from '@luiggi-87/mistral-proxy';
+
+const client = new CountedMistral({
+  apiKey: process.env.MISTRAL_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.chat.complete({
+  model: '${model || 'mistral-small-latest'}',
+  messages: [{ role: 'user', content: 'Olá' }]
+});`,
+    cohere: (model) => `import { CountedCohere } from '@luiggi-87/cohere-proxy';
+
+const client = new CountedCohere({
+  apiKey: process.env.COHERE_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.chat({
+  model: '${model || 'command-r'}',
+  messages: [{ role: 'user', content: 'Olá' }]
+});`,
+    perplexity: (model) => `import { CountedPerplexity } from '@luiggi-87/perplexity-proxy';
+
+const client = new CountedPerplexity({
+  apiKey: process.env.PERPLEXITY_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.chat.completions.create({
+  model: '${model || 'sonar'}',
+  messages: [{ role: 'user', content: 'Olá' }]
+});`,
+    together: (model) => `import { CountedTogether } from '@luiggi-87/together-proxy';
+
+const client = new CountedTogether({
+  apiKey: process.env.TOGETHER_API_KEY,
+  token: '${token}',
+  projectId: '${selectedProject}',
+  apiId: '${selectedApi}',
+  backendUrl: '${backendUrl}'
+});
+
+// Use normalmente - custos registram automaticamente
+const msg = await client.chat.completions.create({
+  model: '${model || 'mistralai/Mistral-7B-Instruct-v0.1'}',
+  messages: [{ role: 'user', content: 'Olá' }]
 });`
   };
 
@@ -144,12 +219,17 @@ const response = await fetch('${backendUrl}/api/costs', {
   })
 });`;
 
-  const hasPackage = ['anthropic', 'openai', 'google'].includes(apiType);
+  const hasPackage = ['anthropic', 'openai', 'google', 'groq', 'mistral', 'cohere', 'perplexity', 'together'].includes(apiType);
 
   const packageName = {
     anthropic: '@luiggi-87/anthropic-proxy',
     openai: '@luiggi-87/openai-proxy',
-    google: '@luiggi-87/gemini-proxy'
+    google: '@luiggi-87/gemini-proxy',
+    groq: '@luiggi-87/groq-proxy',
+    mistral: '@luiggi-87/mistral-proxy',
+    cohere: '@luiggi-87/cohere-proxy',
+    perplexity: '@luiggi-87/perplexity-proxy',
+    together: '@luiggi-87/together-proxy'
   }[apiType];
 
   const exampleCode = hasPackage
