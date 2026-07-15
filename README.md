@@ -1,6 +1,6 @@
 # 💰 MyTokenCost
 
-Sistema multi-tenant para rastrear, calcular e gerenciar custos de múltiplas APIs de IA (Anthropic, OpenAI, Google, Firecrawl, etc.), com dashboard em tempo real, alertas, webhooks, relatórios e cobrança automática via Stripe.
+Sistema multi-tenant para rastrear, calcular e gerenciar custos de múltiplas APIs de IA (Anthropic, OpenAI, Google, Groq, Mistral, Cohere, Perplexity, Together AI, Firecrawl, etc.), com dashboard em tempo real, alertas, webhooks, relatórios e cobrança automática via Stripe. Todos os valores são exibidos e cobrados em **USD**.
 
 **Produção:**
 - Frontend: https://mtc.247ia.com.br (Netlify)
@@ -22,13 +22,14 @@ Build de produção: `npm run build && npm run start`
 
 - **Autenticação JWT** multi-tenant (cada usuário só vê seus próprios dados), com fluxo de **reset de senha** por email
 - **Dashboard em tempo real** via WebSocket (Socket.io) — total gasto, por API, por projeto, últimos 30 dias
-- **APIs suportadas**: Anthropic, OpenAI, Google AI Studio, Firecrawl, Hugging Face, Cohere, Mistral, Groq, Replicate, customizável
+- **APIs suportadas**: Anthropic, OpenAI, Google AI Studio, Groq, Mistral, Cohere, Perplexity, Together AI, AWS Bedrock, Azure OpenAI, Hugging Face, Replicate, Firecrawl, customizável (13 provedores em `server/prices.json`)
+- **Validação de chave em tempo real**: aba Integração testa a chave do cliente direto na API oficial do provedor (Anthropic, OpenAI, Google, Groq, Perplexity) e cruza com modelos ativos agora mesmo — quando um provedor aposenta um modelo, ele some da lista testada automaticamente, sem precisar editar código (`server/routes/integrations.js`)
 - **Projetos/Clientes**: taxa mensal de referência, custos segmentados
-- **Rastreamento de custos**: manual ou automático via SDKs proxy (`packages/sdk/*`)
+- **Rastreamento de custos**: manual ou automático via SDKs proxy (`packages/sdk/*`) — 13 provedores com pacote pronto (12 publicados no npm, 1 com publicação pendente)
 - **Webhooks**: notificação em eventos de custo, retry automático
 - **Alertas**: limite de gasto, detecção de anomalia (email/Slack/webhook)
 - **Relatórios**: PDF, CSV, JSON
-- **Stripe**: criação de customer e cobrança automática por projeto
+- **Stripe**: criação de customer e cobrança automática por projeto (USD)
 
 ## 🗄️ Banco de Dados
 
@@ -71,7 +72,11 @@ server/
 client/
   App.jsx, components/, styles/, main.jsx
 packages/sdk/
-  anthropic-proxy/, openai-proxy/, gemini-proxy/   # SDKs com rastreamento automático de custo
+  anthropic-proxy/, openai-proxy/, gemini-proxy/,      # SDKs com rastreamento automático de custo
+  groq-proxy/, mistral-proxy/, cohere-proxy/,          # publicados no npm sob @mtc-247ia/*-proxy
+  perplexity-proxy/, together-proxy/,
+  huggingface-proxy/, replicate-proxy/, firecrawl-proxy/,
+  bedrock-proxy/, azure-openai-proxy/
 monitor.js               # Script de monitoramento de produção
 .github/workflows/monitor.yml   # Monitoramento automático (a cada 6h)
 ```
@@ -90,7 +95,26 @@ import { CountedAnthropic } from "@mtc-247ia/anthropic-proxy";
 const client = new CountedAnthropic({ apiKey: process.env.ANTHROPIC_KEY, projectId: "seu-projeto" });
 // Custos rastreados automaticamente
 ```
-Também disponível: `@mtc-247ia/openai-proxy`, `@mtc-247ia/gemini-proxy`.
+
+Publicados no npm sob o escopo `@mtc-247ia`, todos com o mesmo padrão (`Counted<Provider>`, mesmas opções de construtor):
+
+| Provedor | Pacote |
+|----------|--------|
+| Anthropic | `@mtc-247ia/anthropic-proxy` |
+| OpenAI | `@mtc-247ia/openai-proxy` |
+| Google Gemini | `@mtc-247ia/gemini-proxy` |
+| Groq | `@mtc-247ia/groq-proxy` |
+| Mistral AI | `@mtc-247ia/mistral-proxy` |
+| Cohere | `@mtc-247ia/cohere-proxy` |
+| Perplexity AI | `@mtc-247ia/perplexity-proxy` |
+| Together AI | `@mtc-247ia/together-proxy` (publicação pendente, retry manual) |
+| Hugging Face | `@mtc-247ia/huggingface-proxy` |
+| Replicate | `@mtc-247ia/replicate-proxy` |
+| Firecrawl | `@mtc-247ia/firecrawl-proxy` |
+| AWS Bedrock | `@mtc-247ia/bedrock-proxy` |
+| Azure OpenAI | `@mtc-247ia/azure-openai-proxy` |
+
+O nome do método de chat varia por provedor (`chat.completions.create` na maioria, `chat.complete` na Mistral, `chat()` direto na Cohere) — ver o README de cada pacote ou [INTEGRACAO_DEVS.md](INTEGRACAO_DEVS.md) para exemplos completos, incluindo os provedores "especiais" (Hugging Face/Replicate cobram por tempo de execução, Firecrawl por créditos, Bedrock/Azure precisam de credenciais multi-campo).
 
 ## 🔐 Segurança
 
