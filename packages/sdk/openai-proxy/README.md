@@ -1,4 +1,4 @@
-# @luiggi-87/openai-proxy
+# @mtc-247ia/openai-proxy
 
 SDK proxy para OpenAI que **automaticamente rastreia custos** e registra no MyTokenCost.
 
@@ -12,7 +12,7 @@ Substitua suas importações do OpenAI por este proxy e:
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/openai-proxy
+npm install @mtc-247ia/openai-proxy
 ```
 
 ## 🚀 Uso
@@ -33,7 +33,7 @@ const message = await client.chat.completions.create({
 
 ### Depois (com tracking automático)
 ```javascript
-import { CountedOpenAI } from "@luiggi-87/openai-proxy";
+import { CountedOpenAI } from "@mtc-247ia/openai-proxy";
 
 const client = new CountedOpenAI({
   apiKey: process.env.OPENAI_API_KEY,

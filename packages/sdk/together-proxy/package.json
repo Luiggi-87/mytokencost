@@ -1,5 +1,5 @@
 {
-  "name": "@luiggi-87/together-proxy",
+  "name": "@mtc-247ia/together-proxy",
   "version": "1.0.0",
   "description": "Together AI SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",

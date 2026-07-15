@@ -1,17 +1,17 @@
-# @luiggi-87/perplexity-proxy
+# @mtc-247ia/perplexity-proxy
 
 SDK proxy para Perplexity que **automaticamente rastreia custos** e registra no MyTokenCost.
 
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/perplexity-proxy
+npm install @mtc-247ia/perplexity-proxy
 ```
 
 ## 🚀 Uso
 
 ```javascript
-import { CountedPerplexity } from "@luiggi-87/perplexity-proxy";
+import { CountedPerplexity } from "@mtc-247ia/perplexity-proxy";
 
 const client = new CountedPerplexity({
   apiKey: process.env.PERPLEXITY_API_KEY,

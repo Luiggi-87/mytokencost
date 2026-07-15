@@ -1,5 +1,5 @@
 {
-  "name": "@luiggi-87/groq-proxy",
+  "name": "@mtc-247ia/groq-proxy",
   "version": "1.0.0",
   "description": "Groq SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",

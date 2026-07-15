@@ -1,17 +1,17 @@
-# @luiggi-87/cohere-proxy
+# @mtc-247ia/cohere-proxy
 
 SDK proxy para Cohere que **automaticamente rastreia custos** e registra no MyTokenCost.
 
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/cohere-proxy
+npm install @mtc-247ia/cohere-proxy
 ```
 
 ## 🚀 Uso
 
 ```javascript
-import { CountedCohere } from "@luiggi-87/cohere-proxy";
+import { CountedCohere } from "@mtc-247ia/cohere-proxy";
 
 const client = new CountedCohere({
   apiKey: process.env.COHERE_API_KEY,

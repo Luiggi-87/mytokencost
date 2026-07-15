@@ -25,7 +25,7 @@ Build de produção: `npm run build && npm run start`
 - **APIs suportadas**: Anthropic, OpenAI, Google AI Studio, Groq, Mistral, Cohere, Perplexity, Together AI, AWS Bedrock, Azure OpenAI, Hugging Face, Replicate, Firecrawl, customizável (13 provedores em `server/prices.json`)
 - **Validação de chave em tempo real**: aba Integração testa a chave do cliente direto na API oficial do provedor (Anthropic, OpenAI, Google, Groq, Perplexity) e cruza com modelos ativos agora mesmo — quando um provedor aposenta um modelo, ele some da lista testada automaticamente, sem precisar editar código (`server/routes/integrations.js`)
 - **Projetos/Clientes**: taxa mensal de referência, custos segmentados
-- **Rastreamento de custos**: manual ou automático via SDKs proxy (`packages/sdk/*`) — 8 provedores com pacote pronto publicado no npm
+- **Rastreamento de custos**: manual ou automático via SDKs proxy (`packages/sdk/*`) — 13 provedores com pacote pronto (12 publicados no npm, 1 com publicação pendente)
 - **Webhooks**: notificação em eventos de custo, retry automático
 - **Alertas**: limite de gasto, detecção de anomalia (email/Slack/webhook)
 - **Relatórios**: PDF, CSV, JSON
@@ -72,9 +72,11 @@ server/
 client/
   App.jsx, components/, styles/, main.jsx
 packages/sdk/
-  anthropic-proxy/, openai-proxy/, gemini-proxy/,  # SDKs com rastreamento automático de custo
-  groq-proxy/, mistral-proxy/, cohere-proxy/,      # publicados no npm sob @luiggi-87/*-proxy
-  perplexity-proxy/, together-proxy/
+  anthropic-proxy/, openai-proxy/, gemini-proxy/,      # SDKs com rastreamento automático de custo
+  groq-proxy/, mistral-proxy/, cohere-proxy/,          # publicados no npm sob @mtc-247ia/*-proxy
+  perplexity-proxy/, together-proxy/,
+  huggingface-proxy/, replicate-proxy/, firecrawl-proxy/,
+  bedrock-proxy/, azure-openai-proxy/
 monitor.js               # Script de monitoramento de produção
 .github/workflows/monitor.yml   # Monitoramento automático (a cada 6h)
 ```
@@ -86,28 +88,33 @@ Guia completo: [DEPLOY.md](DEPLOY.md) — Railway (backend), Netlify (frontend),
 ## 💻 SDKs com rastreamento automático
 
 ```bash
-npm install @luiggi-87/anthropic-proxy
+npm install @mtc-247ia/anthropic-proxy
 ```
 ```javascript
-import { CountedAnthropic } from "@luiggi-87/anthropic-proxy";
+import { CountedAnthropic } from "@mtc-247ia/anthropic-proxy";
 const client = new CountedAnthropic({ apiKey: process.env.ANTHROPIC_KEY, projectId: "seu-projeto" });
 // Custos rastreados automaticamente
 ```
 
-Publicados no npm sob o escopo `@luiggi-87`, todos com o mesmo padrão (`Counted<Provider>`, mesmas opções de construtor):
+Publicados no npm sob o escopo `@mtc-247ia`, todos com o mesmo padrão (`Counted<Provider>`, mesmas opções de construtor):
 
 | Provedor | Pacote |
 |----------|--------|
-| Anthropic | `@luiggi-87/anthropic-proxy` |
-| OpenAI | `@luiggi-87/openai-proxy` |
-| Google Gemini | `@luiggi-87/gemini-proxy` |
-| Groq | `@luiggi-87/groq-proxy` |
-| Mistral AI | `@luiggi-87/mistral-proxy` |
-| Cohere | `@luiggi-87/cohere-proxy` |
-| Perplexity AI | `@luiggi-87/perplexity-proxy` |
-| Together AI | `@luiggi-87/together-proxy` |
+| Anthropic | `@mtc-247ia/anthropic-proxy` |
+| OpenAI | `@mtc-247ia/openai-proxy` |
+| Google Gemini | `@mtc-247ia/gemini-proxy` |
+| Groq | `@mtc-247ia/groq-proxy` |
+| Mistral AI | `@mtc-247ia/mistral-proxy` |
+| Cohere | `@mtc-247ia/cohere-proxy` |
+| Perplexity AI | `@mtc-247ia/perplexity-proxy` |
+| Together AI | `@mtc-247ia/together-proxy` (publicação pendente, retry manual) |
+| Hugging Face | `@mtc-247ia/huggingface-proxy` |
+| Replicate | `@mtc-247ia/replicate-proxy` |
+| Firecrawl | `@mtc-247ia/firecrawl-proxy` |
+| AWS Bedrock | `@mtc-247ia/bedrock-proxy` |
+| Azure OpenAI | `@mtc-247ia/azure-openai-proxy` |
 
-O nome do método de chat varia por provedor (`chat.completions.create` na maioria, `chat.complete` na Mistral, `chat()` direto na Cohere) — ver o README de cada pacote ou [INTEGRACAO_DEVS.md](INTEGRACAO_DEVS.md) para exemplos completos. Provedores sem pacote pronto (Hugging Face, Replicate, Firecrawl, AWS Bedrock, Azure OpenAI) usam registro manual via `POST /api/costs`.
+O nome do método de chat varia por provedor (`chat.completions.create` na maioria, `chat.complete` na Mistral, `chat()` direto na Cohere) — ver o README de cada pacote ou [INTEGRACAO_DEVS.md](INTEGRACAO_DEVS.md) para exemplos completos, incluindo os provedores "especiais" (Hugging Face/Replicate cobram por tempo de execução, Firecrawl por créditos, Bedrock/Azure precisam de credenciais multi-campo).
 
 ## 🔐 Segurança
 

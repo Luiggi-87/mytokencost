@@ -7,7 +7,7 @@ import { Perplexity } from "@perplexity-ai/perplexity_ai";
  * e registra no dashboard MyTokenCost
  *
  * Uso:
- * import { CountedPerplexity } from '@luiggi-87/perplexity-proxy';
+ * import { CountedPerplexity } from '@mtc-247ia/perplexity-proxy';
  *
  * const client = new CountedPerplexity({
  *   apiKey: process.env.PERPLEXITY_API_KEY,

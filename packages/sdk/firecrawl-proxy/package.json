@@ -1,7 +1,7 @@
 {
-  "name": "@mtc-247ia/gemini-proxy",
+  "name": "@mtc-247ia/firecrawl-proxy",
   "version": "1.0.0",
-  "description": "Google Gemini SDK wrapper that automatically tracks API costs to MyTokenCost",
+  "description": "Firecrawl SDK wrapper that automatically tracks scraping credit costs to MyTokenCost",
   "main": "index.js",
   "type": "module",
   "files": [
@@ -9,8 +9,8 @@
     "README.md"
   ],
   "keywords": [
-    "google",
-    "gemini",
+    "firecrawl",
+    "scraping",
     "cost-tracking",
     "billing",
     "mytokencost"
@@ -20,12 +20,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Luiggi-87/mytokencost.git",
-    "directory": "packages/sdk/gemini-proxy"
+    "directory": "packages/sdk/firecrawl-proxy"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1"
+    "firecrawl": "^4.30.0"
   }
 }

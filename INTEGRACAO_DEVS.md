@@ -11,7 +11,7 @@ A forma mais simples: vá na aba **Integração** do MyTokenCost, seção **"Exe
 O código copiado se parece com isto:
 
 ```javascript
-import { CountedAnthropic } from '@luiggi-87/anthropic-proxy';
+import { CountedAnthropic } from '@mtc-247ia/anthropic-proxy';
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -29,7 +29,7 @@ const msg = await client.messages.create({
 });
 ```
 
-O dev só precisa: (1) instalar `npm install @luiggi-87/anthropic-proxy`, (2) trocar o import do `Anthropic` normal pelo `CountedAnthropic`, (3) colar a chave real da Anthropic na variável de ambiente `ANTHROPIC_KEY`. Nada mais muda no código dele.
+O dev só precisa: (1) instalar `npm install @mtc-247ia/anthropic-proxy`, (2) trocar o import do `Anthropic` normal pelo `CountedAnthropic`, (3) colar a chave real da Anthropic na variável de ambiente `ANTHROPIC_KEY`. Nada mais muda no código dele.
 
 ---
 
@@ -58,6 +58,19 @@ Retorna (modelos testados em paralelo, com preço de cada um):
 }
 ```
 
+Pra Bedrock e Azure (que não têm uma chave única), manda `provider` explícito + os campos extras em vez de `provider_key`:
+```bash
+# Bedrock
+curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "bedrock", "access_key_id": "AKIA...", "secret_access_key": "...", "region": "us-east-1"}'
+
+# Azure OpenAI
+curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "azure", "provider_key": "sua-chave", "endpoint": "https://SEU-RECURSO.openai.azure.com", "deployment": "meu-deployment"}'
+```
+
 ---
 
 ## **OPÇÃO TRADICIONAL: Os 5 Dados que Você Precisa** (se preferir configurar manualmente)
@@ -83,7 +96,7 @@ BACKEND_URL=https://mytokencost.up.railway.app
 
 ### 1. Instale o SDK
 ```bash
-npm install @luiggi-87/anthropic-proxy
+npm install @mtc-247ia/anthropic-proxy
 ```
 
 ### 2. Troque no código
@@ -104,7 +117,7 @@ const msg = await client.messages.create({
 
 **Depois (com tracking):**
 ```javascript
-import { CountedAnthropic } from '@luiggi-87/anthropic-proxy';
+import { CountedAnthropic } from '@mtc-247ia/anthropic-proxy';
 
 const client = new CountedAnthropic({
   apiKey: process.env.ANTHROPIC_KEY,
@@ -278,7 +291,7 @@ func main() {
 
 | Stack | O que fazer |
 |-------|-----------|
-| **Node.js** | Instalar `@luiggi-87/anthropic-proxy`, trocar 1 import + 1 construtor |
+| **Node.js** | Instalar `@mtc-247ia/anthropic-proxy`, trocar 1 import + 1 construtor |
 | **Python** | Criar wrapper `CountedAnthropic`, chamar `_record_cost()` após cada request |
 | **Go** | Criar função `recordCost()`, chamar após cada request |
 | **Outro** | Fazer POST pro `/api/costs` com os dados do custo (model, tokens, valor) |
@@ -301,17 +314,65 @@ Além da Anthropic, também temos SDK proxy pronto pra:
 
 | Provedor | Pacote | Import |
 |----------|--------|--------|
-| OpenAI | `@luiggi-87/openai-proxy` | `import { CountedOpenAI } from '@luiggi-87/openai-proxy'` |
-| Google Gemini | `@luiggi-87/gemini-proxy` | `import { CountedGemini } from '@luiggi-87/gemini-proxy'` |
-| Groq | `@luiggi-87/groq-proxy` | `import { CountedGroq } from '@luiggi-87/groq-proxy'` |
-| Mistral AI | `@luiggi-87/mistral-proxy` | `import { CountedMistral } from '@luiggi-87/mistral-proxy'` |
-| Cohere | `@luiggi-87/cohere-proxy` | `import { CountedCohere } from '@luiggi-87/cohere-proxy'` |
-| Perplexity AI | `@luiggi-87/perplexity-proxy` | `import { CountedPerplexity } from '@luiggi-87/perplexity-proxy'` |
-| Together AI | `@luiggi-87/together-proxy` | `import { CountedTogether } from '@luiggi-87/together-proxy'` |
+| OpenAI | `@mtc-247ia/openai-proxy` | `import { CountedOpenAI } from '@mtc-247ia/openai-proxy'` |
+| Google Gemini | `@mtc-247ia/gemini-proxy` | `import { CountedGemini } from '@mtc-247ia/gemini-proxy'` |
+| Groq | `@mtc-247ia/groq-proxy` | `import { CountedGroq } from '@mtc-247ia/groq-proxy'` |
+| Mistral AI | `@mtc-247ia/mistral-proxy` | `import { CountedMistral } from '@mtc-247ia/mistral-proxy'` |
+| Cohere | `@mtc-247ia/cohere-proxy` | `import { CountedCohere } from '@mtc-247ia/cohere-proxy'` |
+| Perplexity AI | `@mtc-247ia/perplexity-proxy` | `import { CountedPerplexity } from '@mtc-247ia/perplexity-proxy'` |
+| Together AI | `@mtc-247ia/together-proxy` | `import { CountedTogether } from '@mtc-247ia/together-proxy'` |
 
 O padrão de uso é o mesmo em todos: instala o pacote, troca o import do SDK oficial pela versão `Counted*`, passa `token`/`projectId`/`apiId`/`backendUrl` no construtor. O nome do método de chat varia por provedor (ex: `chat.completions.create` na maioria, mas `chat.complete` na Mistral e `chat` direto na Cohere) — a aba **Integração** do MyTokenCost já gera o código certo pra cada um quando você seleciona a API.
 
-Provedores sem pacote pronto ainda (Hugging Face, Replicate, Firecrawl, AWS Bedrock, Azure OpenAI): use o registro manual via POST `/api/costs`, mostrado automaticamente na aba Integração quando você seleciona um desses.
+---
+
+## **Provedores "Especiais" (não encaixam no padrão de 1 chave)**
+
+Esses 5 também têm pacote pronto, mas funcionam diferente dos demais — vale saber a diferença antes de integrar:
+
+| Provedor | Pacote | Por que é diferente |
+|----------|--------|----------------------|
+| Hugging Face | `@mtc-247ia/huggingface-proxy` | Cobra por **tempo de execução** (segundos), não por token — não há preço fixo por modelo |
+| Replicate | `@mtc-247ia/replicate-proxy` | Cobra por **tempo de computação** (`predict_time`, varia por hardware) |
+| Firecrawl | `@mtc-247ia/firecrawl-proxy` | Não é um LLM — é raspagem de site (scrape/crawl/search), cobra em **créditos** |
+| AWS Bedrock | `@mtc-247ia/bedrock-proxy` | Autentica com **Access Key + Secret Key + Região** (AWS SigV4), não uma chave única |
+| Azure OpenAI | `@mtc-247ia/azure-openai-proxy` | Autentica com **Endpoint + Deployment Name + chave**, não uma chave única |
+
+```javascript
+// Hugging Face / Replicate: unit_type "seconds" — custo = duração × pricePerSecond (ajuste ao seu plano)
+import { CountedHuggingFace } from '@mtc-247ia/huggingface-proxy';
+const hf = new CountedHuggingFace({ apiKey: process.env.HF_TOKEN, token, projectId, apiId, backendUrl });
+await hf.chatCompletion({ model: 'Qwen/Qwen3-32B', messages: [{ role: 'user', content: 'Olá' }] });
+
+// Firecrawl: unit_type "credits" — não é chat completion
+import { CountedFirecrawl } from '@mtc-247ia/firecrawl-proxy';
+const fc = new CountedFirecrawl({ apiKey: process.env.FIRECRAWL_API_KEY, token, projectId, apiId, backendUrl });
+await fc.scrape('https://example.com');
+
+// Bedrock: precisa de accessKeyId + secretAccessKey + region (não apiKey)
+import { CountedBedrockRuntime, ConverseCommand } from '@mtc-247ia/bedrock-proxy';
+const bedrock = new CountedBedrockRuntime({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: 'us-east-1', token, projectId, apiId, backendUrl
+});
+await bedrock.send(new ConverseCommand({
+  modelId: 'anthropic.claude-sonnet-5',
+  messages: [{ role: 'user', content: [{ text: 'Olá' }] }]
+}));
+
+// Azure OpenAI: precisa de endpoint + deployment (não só apiKey)
+import { CountedAzureOpenAI } from '@mtc-247ia/azure-openai-proxy';
+const azure = new CountedAzureOpenAI({
+  apiKey: process.env.AZURE_OPENAI_KEY,
+  endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+  deployment: 'meu-deployment', model: 'gpt-4o',
+  token, projectId, apiId, backendUrl
+});
+await azure.chat.completions.create({ messages: [{ role: 'user', content: 'Olá' }] });
+```
+
+Pra Bedrock e Azure, a aba **Integração** mostra campos extras (Access Key/Secret/Região ou Endpoint/Deployment) em vez do campo único de chave, tanto pra gerar o código quanto pra validar/testar a credencial.
 
 ---
 
