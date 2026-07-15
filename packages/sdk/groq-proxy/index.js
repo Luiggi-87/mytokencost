@@ -7,7 +7,7 @@ import Groq from "groq-sdk";
  * e registra no dashboard MyTokenCost
  *
  * Uso:
- * import { CountedGroq } from '@luiggi-87/groq-proxy';
+ * import { CountedGroq } from '@mtc-247ia/groq-proxy';
  *
  * const client = new CountedGroq({
  *   apiKey: process.env.GROQ_API_KEY,

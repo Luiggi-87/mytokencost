@@ -1,17 +1,17 @@
-# @luiggi-87/groq-proxy
+# @mtc-247ia/groq-proxy
 
 SDK proxy para Groq que **automaticamente rastreia custos** e registra no MyTokenCost.
 
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/groq-proxy
+npm install @mtc-247ia/groq-proxy
 ```
 
 ## 🚀 Uso
 
 ```javascript
-import { CountedGroq } from "@luiggi-87/groq-proxy";
+import { CountedGroq } from "@mtc-247ia/groq-proxy";
 
 const client = new CountedGroq({
   apiKey: process.env.GROQ_API_KEY,

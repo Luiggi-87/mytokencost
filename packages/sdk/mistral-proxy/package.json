@@ -1,5 +1,5 @@
 {
-  "name": "@luiggi-87/mistral-proxy",
+  "name": "@mtc-247ia/mistral-proxy",
   "version": "1.0.0",
   "description": "Mistral AI SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",

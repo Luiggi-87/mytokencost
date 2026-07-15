@@ -7,7 +7,7 @@ import Anthropic from "@anthropic-ai/sdk";
  * e registra no dashboard MyTokenCost
  *
  * Uso:
- * import { CountedAnthropic } from '@luiggi-87/anthropic-proxy';
+ * import { CountedAnthropic } from '@mtc-247ia/anthropic-proxy';
  *
  * const client = new CountedAnthropic({
  *   apiKey: process.env.ANTHROPIC_KEY,

@@ -1,5 +1,5 @@
 {
-  "name": "@luiggi-87/perplexity-proxy",
+  "name": "@mtc-247ia/perplexity-proxy",
   "version": "1.0.0",
   "description": "Perplexity SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",

@@ -1,5 +1,5 @@
 {
-  "name": "@luiggi-87/cohere-proxy",
+  "name": "@mtc-247ia/cohere-proxy",
   "version": "1.0.0",
   "description": "Cohere SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",

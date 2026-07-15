@@ -7,7 +7,7 @@ import { CohereClientV2 } from "cohere-ai";
  * e registra no dashboard MyTokenCost
  *
  * Uso:
- * import { CountedCohere } from '@luiggi-87/cohere-proxy';
+ * import { CountedCohere } from '@mtc-247ia/cohere-proxy';
  *
  * const client = new CountedCohere({
  *   apiKey: process.env.COHERE_API_KEY,

@@ -1,5 +1,5 @@
 {
-  "name": "@luiggi-87/anthropic-proxy",
+  "name": "@mtc-247ia/anthropic-proxy",
   "version": "1.0.0",
   "description": "Anthropic Claude SDK wrapper that automatically tracks API costs to MyTokenCost",
   "main": "index.js",
