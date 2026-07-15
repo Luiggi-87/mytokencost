@@ -44,3 +44,16 @@ Renomeado para **MyTokenCost**.
 - Frontend: link "Esqueci minha senha" no Login, modo de reset ativado automaticamente via `?reset_token=` na URL
 - **Bug encontrado e corrigido no processo**: `initializeTables()` disparava os `CREATE TABLE`/`ALTER TABLE` sem aguardar (fire-and-forget). Isso permitia que o `ALTER TABLE users` (migração das novas colunas) rodasse antes do `CREATE TABLE users` terminar; no SQLite local isso derrubava o processo inteiro (erro não tratado "no such table"). Corrigido: todas as queries de inicialização agora rodam em sequência com `await`.
 - Testado ponta a ponta local e em produção: registro → forgot-password → reset com token → senha antiga rejeitada → senha nova funciona → token não pode ser reutilizado → email desconhecido recebe resposta idêntica.
+
+## Fase 6 — 13 provedores SDK proxy + escopo npm próprio
+
+- SDK proxy expandido de 3 para 13 provedores (`packages/sdk/*`): Anthropic, OpenAI, Gemini, Groq, Mistral, Cohere, Perplexity, Together AI, e 5 provedores "especiais" que não seguem o padrão de uma chave + `messages.create`:
+  - **Hugging Face** e **Replicate**: cobram por tempo de computação, não por token — o proxy mede duração real (`predict_time`/wall-clock) e aplica um `pricePerSecond` configurável
+  - **Firecrawl**: não é LLM, é scraping (scrape/crawl/search) — rastreia créditos consumidos via `getCreditUsage()` da API oficial, não tokens
+  - **AWS Bedrock**: autentica com Access Key + Secret Key + Região (SigV4) em vez de uma chave única; usa a Converse API (formato de `usage` padronizado entre modelos)
+  - **Azure OpenAI**: autentica com Endpoint + Deployment Name + chave
+- `server/routes/integrations.js` (`/api/integrations/validate-key`) e `IntegrationSetup.jsx` atualizados para os 5 novos provedores, incluindo campos de credencial multi-campo condicionais (Bedrock/Azure) em vez do campo único de chave
+- **Bug encontrado durante o desenvolvimento**: `@huggingface/inference` define seus métodos como propriedades não-configuráveis na instância — o padrão `extends` + monkey-patch usado nos outros 12 pacotes quebrava com `TypeError: Cannot assign to read only property`. Corrigido usando composição (client interno + delegação) só nesse pacote.
+- **Escopo npm renomeado**: todos os 13 pacotes migraram de `@luiggi-87/*` (conta pessoal) para `@mtc-247ia/*` (organização npm), para não expor o nome pessoal do usuário nos comandos de instalação. Os pacotes antigos em `@luiggi-87/*` foram deprecados (não removidos) apontando para o novo escopo.
+  - Pendência: `@mtc-247ia/together-proxy` não publicou (HTTP 429 persistente em 4 tentativas) — falta retry manual; `@luiggi-87/together-proxy` foi deixado sem deprecar até lá.
+- **Bug pré-existente encontrado e corrigido**: o código gerado pela aba Integração para Google Gemini chamava `client.generateContent({ model, contents })` (um objeto só), mas o método real do `CountedGemini` é `generateContent(model, params)` — dois argumentos separados. Quem copiasse o código da produção (ainda rodando a versão anterior a esta fase) receberia um snippet que quebra em runtime. Corrigido em `IntegrationSetup.jsx`.
