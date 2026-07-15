@@ -117,8 +117,7 @@ const client = new CountedGemini({
 });
 
 // Use normalmente - custos registram automaticamente
-const msg = await client.generateContent({
-  model: '${model || 'gemini-2.0-flash'}',
+const msg = await client.generateContent('${model || 'gemini-2.0-flash'}', {
   contents: [{ role: 'user', parts: [{ text: 'Olá' }] }]
 });`,
     groq: (model) => `import { CountedGroq } from '@luiggi-87/groq-proxy';
