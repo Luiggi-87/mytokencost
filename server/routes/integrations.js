@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
 const router = express.Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -111,26 +112,36 @@ async function testModelsWithPricing(resolvedPairs, priceKey, callModel) {
 // Valida chave do provedor e retorna informações de consumo
 router.post('/validate-key', async (req, res) => {
   try {
-    const { provider_key } = req.body;
+    const { provider_key, provider: explicitProvider, access_key_id, secret_access_key, region, endpoint, deployment } = req.body;
 
-    if (!provider_key) {
+    // Bedrock e Azure não autenticam com uma chave única (SigV4 / endpoint+deployment+chave),
+    // então o cliente manda o provider explicitamente em vez de depender da detecção por prefixo.
+    if (!provider_key && !explicitProvider) {
       return res.status(400).json({ error: 'provider_key é obrigatório' });
     }
 
-    // Detectar provider pela chave
-    let provider = null;
-    if (provider_key.startsWith('sk-ant-')) {
-      provider = 'anthropic';
-    } else if (provider_key.startsWith('gsk_')) {
-      provider = 'groq';
-    } else if (provider_key.startsWith('pplx-')) {
-      provider = 'perplexity';
-    } else if (provider_key.startsWith('sk-') || provider_key.startsWith('sk_')) {
-      provider = 'openai';
-    } else if (provider_key.includes('AIza')) {
-      provider = 'google-gemini';
-    } else {
-      return res.status(400).json({ error: 'Formato de chave não reconhecido' });
+    // Detectar provider pela chave (ou usar o explícito, para provedores multi-campo)
+    let provider = explicitProvider || null;
+    if (!provider) {
+      if (provider_key.startsWith('sk-ant-')) {
+        provider = 'anthropic';
+      } else if (provider_key.startsWith('gsk_')) {
+        provider = 'groq';
+      } else if (provider_key.startsWith('pplx-')) {
+        provider = 'perplexity';
+      } else if (provider_key.startsWith('hf_')) {
+        provider = 'huggingface';
+      } else if (provider_key.startsWith('fc-')) {
+        provider = 'firecrawl';
+      } else if (provider_key.startsWith('r8_')) {
+        provider = 'replicate';
+      } else if (provider_key.startsWith('sk-') || provider_key.startsWith('sk_')) {
+        provider = 'openai';
+      } else if (provider_key.includes('AIza')) {
+        provider = 'google-gemini';
+      } else {
+        return res.status(400).json({ error: 'Formato de chave não reconhecido' });
+      }
     }
 
     let result = {};
@@ -403,6 +414,218 @@ router.post('/validate-key', async (req, res) => {
         name: 'Perplexity AI',
         is_valid: true,
         models_tested: modelResults,
+        billing: null
+      };
+    }
+
+    // Validar Hugging Face
+    // Nota: cobrança é por tempo de execução (varia por provedor de
+    // inferência), não por token — então aqui só validamos a chave via
+    // whoami, sem testar/cobrar um modelo real.
+    if (provider === 'huggingface') {
+      const whoamiRes = await fetch('https://huggingface.co/api/whoami-v2', {
+        headers: { 'Authorization': `Bearer ${provider_key}` }
+      });
+
+      if (!whoamiRes.ok) {
+        return res.status(401).json({
+          provider: 'huggingface',
+          name: 'Hugging Face',
+          is_valid: false,
+          error: 'Chave inválida ou expirada'
+        });
+      }
+
+      const whoami = await whoamiRes.json();
+
+      result = {
+        provider: 'huggingface',
+        name: 'Hugging Face',
+        is_valid: true,
+        billing: {
+          account: whoami.name || whoami.fullname,
+          plan: whoami.type
+        },
+        usage: {
+          note: 'Cobrança por tempo de execução (varia por provedor de inferência) — veja huggingface.co/settings/billing'
+        }
+      };
+    }
+
+    // Validar Replicate
+    // Nota: cobrança é por segundo de computação (varia por hardware),
+    // não por token — então aqui só validamos a chave via /account.
+    if (provider === 'replicate') {
+      const accountRes = await fetch('https://api.replicate.com/v1/account', {
+        headers: { 'Authorization': `Bearer ${provider_key}` }
+      });
+
+      if (!accountRes.ok) {
+        return res.status(401).json({
+          provider: 'replicate',
+          name: 'Replicate',
+          is_valid: false,
+          error: 'Chave inválida ou expirada'
+        });
+      }
+
+      const account = await accountRes.json();
+
+      result = {
+        provider: 'replicate',
+        name: 'Replicate',
+        is_valid: true,
+        billing: {
+          account: account.username,
+          type: account.type
+        },
+        usage: {
+          note: 'Cobrança por segundo de computação (varia por modelo/hardware) — veja replicate.com/account/billing'
+        }
+      };
+    }
+
+    // Validar Firecrawl
+    // Não é um LLM — usa créditos por operação (scrape/crawl/search), não
+    // tokens. getCreditUsage não consome créditos, então dá pra validar
+    // sem custo real.
+    if (provider === 'firecrawl') {
+      const creditRes = await fetch('https://api.firecrawl.dev/v2/team/credit-usage', {
+        headers: { 'Authorization': `Bearer ${provider_key}` }
+      });
+
+      if (!creditRes.ok) {
+        return res.status(401).json({
+          provider: 'firecrawl',
+          name: 'Firecrawl',
+          is_valid: false,
+          error: 'Chave inválida ou expirada'
+        });
+      }
+
+      const body = await creditRes.json();
+      const credit = body.data || body;
+
+      result = {
+        provider: 'firecrawl',
+        name: 'Firecrawl',
+        is_valid: true,
+        billing: {
+          credit_available: credit.remainingCredits ?? credit.remaining_credits,
+          total_credit: credit.planCredits ?? credit.plan_credits
+        },
+        usage: {
+          note: 'Cobrança em créditos por operação (scrape/crawl/search), não em tokens'
+        }
+      };
+    }
+
+    // Validar AWS Bedrock
+    // Não autentica com uma chave única — precisa de Access Key + Secret
+    // Key + Região (SigV4), por isso os campos vêm separados do body.
+    if (provider === 'bedrock') {
+      if (!access_key_id || !secret_access_key || !region) {
+        return res.status(400).json({
+          provider: 'bedrock',
+          name: 'AWS Bedrock',
+          is_valid: false,
+          error: 'access_key_id, secret_access_key e region são obrigatórios'
+        });
+      }
+
+      const client = new BedrockRuntimeClient({
+        region,
+        credentials: { accessKeyId: access_key_id, secretAccessKey: secret_access_key }
+      });
+
+      const pairs = Object.keys(prices['claude-ai-bedrock'].models).map(m => ({ curated: m, live: m }));
+
+      const modelResults = await testModelsWithPricing(pairs, 'claude-ai-bedrock', (model) =>
+        client.send(new ConverseCommand({
+          modelId: model,
+          messages: [{ role: 'user', content: [{ text: 'ok' }] }],
+          inferenceConfig: { maxTokens: 10 }
+        })).then(r => ({ input: r.usage.inputTokens, output: r.usage.outputTokens }))
+      );
+
+      if (modelResults.length === 0) {
+        return res.status(401).json({
+          provider: 'bedrock',
+          name: 'AWS Bedrock',
+          is_valid: false,
+          error: 'Credenciais inválidas ou sem acesso a nenhum modelo Claude no Bedrock',
+          details: 'Verifique se o modelo foi habilitado em "Model access" no console do Bedrock'
+        });
+      }
+
+      result = {
+        provider: 'bedrock',
+        name: 'AWS Bedrock',
+        is_valid: true,
+        models_tested: modelResults,
+        billing: null
+      };
+    }
+
+    // Validar Azure OpenAI
+    // Não autentica com uma chave única — precisa de Endpoint do recurso +
+    // Deployment Name + chave, por isso os campos vêm separados do body.
+    if (provider === 'azure') {
+      if (!endpoint || !deployment) {
+        return res.status(400).json({
+          provider: 'azure',
+          name: 'Azure OpenAI',
+          is_valid: false,
+          error: 'endpoint e deployment são obrigatórios'
+        });
+      }
+
+      const apiVersion = '2024-10-01-preview';
+      const testRes = await fetch(`${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=${apiVersion}`, {
+        method: 'POST',
+        headers: {
+          'api-key': provider_key,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ max_tokens: 10, messages: [{ role: 'user', content: 'ok' }] })
+      });
+
+      if (!testRes.ok) {
+        const err = await testRes.json().catch(() => ({}));
+        return res.status(401).json({
+          provider: 'azure',
+          name: 'Azure OpenAI',
+          is_valid: false,
+          error: 'Credenciais inválidas ou deployment incorreto',
+          details: err.error?.message
+        });
+      }
+
+      const data = await testRes.json();
+      const model = prices['azure-openai'].models[data.model] ? data.model : Object.keys(prices['azure-openai'].models)[0];
+      const pricing = prices['azure-openai'].models[model];
+      const inputTokens = data.usage.prompt_tokens;
+      const outputTokens = data.usage.completion_tokens;
+
+      result = {
+        provider: 'azure',
+        name: 'Azure OpenAI',
+        is_valid: true,
+        models_tested: [{
+          model,
+          status: 'active',
+          usage: {
+            test_input_tokens: inputTokens,
+            test_output_tokens: outputTokens,
+            test_total_cost: inputTokens * pricing.input + outputTokens * pricing.output
+          },
+          pricing: {
+            input: pricing.input,
+            output: pricing.output,
+            input_per_million: pricing.input * 1000000,
+            output_per_million: pricing.output * 1000000
+          }
+        }],
         billing: null
       };
     }

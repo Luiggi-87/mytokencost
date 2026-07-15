@@ -7,7 +7,7 @@ import Together from "together-ai";
  * e registra no dashboard MyTokenCost
  *
  * Uso:
- * import { CountedTogether } from '@luiggi-87/together-proxy';
+ * import { CountedTogether } from '@mtc-247ia/together-proxy';
  *
  * const client = new CountedTogether({
  *   apiKey: process.env.TOGETHER_API_KEY,

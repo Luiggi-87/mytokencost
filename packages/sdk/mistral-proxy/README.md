@@ -1,17 +1,17 @@
-# @luiggi-87/mistral-proxy
+# @mtc-247ia/mistral-proxy
 
 SDK proxy para Mistral AI que **automaticamente rastreia custos** e registra no MyTokenCost.
 
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/mistral-proxy
+npm install @mtc-247ia/mistral-proxy
 ```
 
 ## 🚀 Uso
 
 ```javascript
-import { CountedMistral } from "@luiggi-87/mistral-proxy";
+import { CountedMistral } from "@mtc-247ia/mistral-proxy";
 
 const client = new CountedMistral({
   apiKey: process.env.MISTRAL_API_KEY,

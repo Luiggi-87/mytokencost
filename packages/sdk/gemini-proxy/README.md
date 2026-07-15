@@ -1,4 +1,4 @@
-# @luiggi-87/gemini-proxy
+# @mtc-247ia/gemini-proxy
 
 SDK proxy para Google Gemini que **automaticamente rastreia custos** e registra no MyTokenCost.
 
@@ -12,13 +12,13 @@ Substitua suas importações do Gemini por este proxy e:
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/gemini-proxy
+npm install @mtc-247ia/gemini-proxy
 ```
 
 ## 🚀 Uso
 
 ```javascript
-import { CountedGemini } from "@luiggi-87/gemini-proxy";
+import { CountedGemini } from "@mtc-247ia/gemini-proxy";
 
 const client = new CountedGemini({
   apiKey: process.env.GEMINI_API_KEY,

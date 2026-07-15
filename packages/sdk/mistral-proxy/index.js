@@ -7,7 +7,7 @@ import { Mistral } from "@mistralai/mistralai";
  * e registra no dashboard MyTokenCost
  *
  * Uso:
- * import { CountedMistral } from '@luiggi-87/mistral-proxy';
+ * import { CountedMistral } from '@mtc-247ia/mistral-proxy';
  *
  * const client = new CountedMistral({
  *   apiKey: process.env.MISTRAL_API_KEY,

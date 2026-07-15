@@ -1,17 +1,17 @@
-# @luiggi-87/together-proxy
+# @mtc-247ia/together-proxy
 
 SDK proxy para Together AI que **automaticamente rastreia custos** e registra no MyTokenCost.
 
 ## 📦 Instalação
 
 ```bash
-npm install @luiggi-87/together-proxy
+npm install @mtc-247ia/together-proxy
 ```
 
 ## 🚀 Uso
 
 ```javascript
-import { CountedTogether } from "@luiggi-87/together-proxy";
+import { CountedTogether } from "@mtc-247ia/together-proxy";
 
 const client = new CountedTogether({
   apiKey: process.env.TOGETHER_API_KEY,
