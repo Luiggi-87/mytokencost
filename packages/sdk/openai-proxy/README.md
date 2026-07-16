@@ -40,7 +40,7 @@ const client = new CountedOpenAI({
   token: process.env.MYTOKENCOST_TOKEN,
   projectId: "meu-projeto",
   apiId: "minha-api",
-  backendUrl: "https://mytokencost.up.railway.app",
+  backendUrl: "https://mytokencost-production.up.railway.app",
 });
 
 // Mesmo código! Custos rastreados automaticamente ✨
@@ -58,7 +58,7 @@ const client = new CountedOpenAI({
   token: process.env.MYTOKENCOST_TOKEN, // ✅ Obrigatório
   projectId: "meu-projeto",             // ✅ Obrigatório
   apiId: "minha-api",                   // Opcional (default: "openai-gpt")
-  backendUrl: "https://mytokencost.up.railway.app", // Opcional
+  backendUrl: "https://mytokencost-production.up.railway.app", // Opcional
   debug: true,                          // Opcional (logs detalhados)
 });
 ```

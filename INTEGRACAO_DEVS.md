@@ -18,7 +18,7 @@ const client = new CountedAnthropic({
   token: 'eyJhbGc...',        // já preenchido pelo sistema
   projectId: 'a9af06d3-...',  // já preenchido pelo sistema
   apiId: '9d209942-...',      // já preenchido pelo sistema
-  backendUrl: 'https://mytokencost.up.railway.app'
+  backendUrl: 'https://mytokencost-production.up.railway.app'
 });
 
 // Use normalmente - custos registram automaticamente
@@ -39,7 +39,7 @@ Se o dev preferir só usar a própria chave da Anthropic sem configurar token/ID
 
 ### 1. Descubra as informações da chave
 ```bash
-curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+curl -X POST https://mytokencost-production.up.railway.app/api/integrations/validate-key \
   -H "Content-Type: application/json" \
   -d '{"provider_key": "sk-ant-xxxxx"}'
 ```
@@ -61,12 +61,12 @@ Retorna (modelos testados em paralelo, com preço de cada um):
 Pra Bedrock e Azure (que não têm uma chave única), manda `provider` explícito + os campos extras em vez de `provider_key`:
 ```bash
 # Bedrock
-curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+curl -X POST https://mytokencost-production.up.railway.app/api/integrations/validate-key \
   -H "Content-Type: application/json" \
   -d '{"provider": "bedrock", "access_key_id": "AKIA...", "secret_access_key": "...", "region": "us-east-1"}'
 
 # Azure OpenAI
-curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
+curl -X POST https://mytokencost-production.up.railway.app/api/integrations/validate-key \
   -H "Content-Type: application/json" \
   -d '{"provider": "azure", "provider_key": "sua-chave", "endpoint": "https://SEU-RECURSO.openai.azure.com", "deployment": "meu-deployment"}'
 ```
@@ -79,7 +79,7 @@ curl -X POST https://mytokencost.up.railway.app/api/integrations/validate-key \
 2. **PROJECT_ID** — ID do projeto (aba Integração → "Copiar Project ID")
 3. **API_ID** — ID da API (aba Integração → "Copiar API ID")
 4. **ANTHROPIC_KEY** — a chave real da Anthropic (você fornece)
-5. **BACKEND_URL** — `https://mytokencost.up.railway.app`
+5. **BACKEND_URL** — `https://mytokencost-production.up.railway.app`
 
 Adicione ao `.env` do dev:
 ```
@@ -87,7 +87,7 @@ MYTOKENCOST_TOKEN=eyJhbGc...
 PROJECT_ID=a9af06d3-...
 API_ID=9d209942-...
 ANTHROPIC_KEY=sk-ant-xxxxx
-BACKEND_URL=https://mytokencost.up.railway.app
+BACKEND_URL=https://mytokencost-production.up.railway.app
 ```
 
 ---
@@ -159,7 +159,7 @@ class CountedAnthropic(Anthropic):
         self.mytokencost_token = os.getenv('MYTOKENCOST_TOKEN')
         self.project_id = os.getenv('PROJECT_ID')
         self.api_id = os.getenv('API_ID')
-        self.backend_url = os.getenv('BACKEND_URL', 'https://mytokencost.up.railway.app')
+        self.backend_url = os.getenv('BACKEND_URL', 'https://mytokencost-production.up.railway.app')
 
     def _record_cost(self, model, input_tokens, output_tokens):
         """Registra custo no MyTokenCost"""

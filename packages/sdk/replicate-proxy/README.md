@@ -20,7 +20,7 @@ const client = new CountedReplicate({
   token: process.env.MYTOKENCOST_TOKEN,
   projectId: "meu-projeto",
   apiId: "minha-api",
-  backendUrl: "https://mytokencost.up.railway.app",
+  backendUrl: "https://mytokencost-production.up.railway.app",
 });
 
 // Custos rastreados automaticamente ✨ (por segundo de execução)
@@ -37,7 +37,7 @@ const client = new CountedReplicate({
   token: process.env.MYTOKENCOST_TOKEN,    // ✅ Obrigatório
   projectId: "meu-projeto",                // ✅ Obrigatório
   apiId: "minha-api",                      // Opcional (default: "replicate")
-  backendUrl: "https://mytokencost.up.railway.app", // Opcional
+  backendUrl: "https://mytokencost-production.up.railway.app", // Opcional
   pricePerSecond: 0.0006,                  // Opcional (default: estimativa genérica de GPU-segundo)
   debug: true,                             // Opcional (logs detalhados)
 });

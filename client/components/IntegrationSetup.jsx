@@ -7,7 +7,7 @@ export default function IntegrationSetup({ token, userId }) {
   const [apis, setApis] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedApi, setSelectedApi] = useState('');
-  const [backendUrl] = useState('https://mytokencost.up.railway.app');
+  const [backendUrl] = useState('https://mytokencost-production.up.railway.app');
 
   const [providerKey, setProviderKey] = useState('');
   const [validationResult, setValidationResult] = useState(null);
