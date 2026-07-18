@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import Dashboard from "./components/Dashboard";
+import HierarchyManager from "./components/HierarchyManager";
 import ApiManager from "./components/ApiManager";
 import ProjectManager from "./components/ProjectManager";
 import CostTracker from "./components/CostTracker";
@@ -11,6 +12,7 @@ import Login from "./components/Login";
 import { getInitialTheme, applyTheme } from "./theme";
 import {
   IconBell,
+  IconBuilding,
   IconCoin,
   IconDashboard,
   IconEdit,
@@ -25,6 +27,7 @@ import "./App.css";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: IconDashboard },
+  { key: "hierarchy", label: "Hierarquia", icon: IconBuilding },
   { key: "costs", label: "Custos", icon: IconCoin },
   { key: "projects", label: "Projetos", icon: IconFolder },
   { key: "apis", label: "APIs", icon: IconPlug },
@@ -211,6 +214,9 @@ export default function App() {
         <main className="app-main">
           {activeTab === "dashboard" && (
             <Dashboard stats={stats} onRefresh={handleRefresh} token={token} />
+          )}
+          {activeTab === "hierarchy" && (
+            <HierarchyManager token={token} onSave={handleRefresh} />
           )}
           {activeTab === "costs" && (
             <CostTracker token={token} onSave={handleRefresh} />

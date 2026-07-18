@@ -100,3 +100,30 @@ export const IconPlus = (p) => (
     <path d="M12 5v14M5 12h14" />
   </svg>
 );
+
+export const IconBuilding = (p) => (
+  <svg {...base} {...p}>
+    <rect x="4" y="3" width="12" height="18" rx="1" />
+    <path d="M8 7h4M8 11h4M8 15h4M16 11h4v10h-8v-6" />
+  </svg>
+);
+
+export const IconUser = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M5 20a7 7 0 0 1 14 0" />
+  </svg>
+);
+
+export const IconKey = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="8" cy="15" r="3.5" />
+    <path d="M10.5 12.5 19 4M16 7l2 2M13 10l2 2" />
+  </svg>
+);
+
+export const IconChevron = (p) => (
+  <svg {...base} {...p}>
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+);

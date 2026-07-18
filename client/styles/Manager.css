@@ -138,3 +138,92 @@
     top: 0;
   }
 }
+
+.hierarchy-manager {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.hierarchy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.hierarchy-header h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hierarchy-tree {
+  max-height: none;
+}
+
+.hierarchy-unassigned {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+}
+
+.tree-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tree-label.clickable {
+  cursor: pointer;
+}
+
+.tree-label.clickable:hover {
+  color: var(--primary);
+}
+
+.chevron-spacer {
+  display: inline-block;
+  width: 1rem;
+}
+
+.tree-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.tree-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  background: var(--bg-lighter);
+  border-radius: 0.4rem;
+}
+
+.tree-actions button.btn-accent {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+}
+
+.inline-add-form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0.75rem 2rem;
+  flex-wrap: wrap;
+}
+
+.inline-add-form input,
+.inline-add-form select {
+  flex: 1;
+  min-width: 140px;
+}
+
+.inline-add-form button {
+  flex-shrink: 0;
+}

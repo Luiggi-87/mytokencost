@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/Manager.css';
 import { IconEdit, IconPlug, IconPlus, IconTrash } from './Icons';
 
-const API_TYPES = {
+export const API_TYPES = {
   anthropic: 'Anthropic Claude',
   openai: 'OpenAI',
   google: 'Google Gemini',
