@@ -58,7 +58,7 @@ router.get('/pricing/:provider', (req, res) => {
 // POST nova API
 router.post('/', async (req, res) => {
   try {
-    const { name, type, api_key, base_url, pricing_model, unit_cost, model } = req.body;
+    const { name, type, api_key, base_url, pricing_model, unit_cost, model, project_id } = req.body;
 
     if (!name || !type) {
       return res.status(400).json({ error: 'Nome e tipo são obrigatórios' });
@@ -66,12 +66,12 @@ router.post('/', async (req, res) => {
 
     const id = uuidv4();
     const sql = `
-      INSERT INTO apis (id, user_id, name, type, api_key, base_url, pricing_model, unit_cost, model)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO apis (id, user_id, name, type, api_key, base_url, pricing_model, unit_cost, model, project_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    await dbRun(sql, [id, req.userId, name, type, api_key || null, base_url || null, pricing_model, unit_cost || 0, model || null]);
-    res.status(201).json({ id, name, type, pricing_model, unit_cost, model });
+    await dbRun(sql, [id, req.userId, name, type, api_key || null, base_url || null, pricing_model, unit_cost || 0, model || null, project_id || null]);
+    res.status(201).json({ id, name, type, pricing_model, unit_cost, model, project_id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -80,16 +80,16 @@ router.post('/', async (req, res) => {
 // PUT atualizar API
 router.put('/:id', async (req, res) => {
   try {
-    const { name, type, api_key, base_url, pricing_model, unit_cost, model } = req.body;
+    const { name, type, api_key, base_url, pricing_model, unit_cost, model, project_id } = req.body;
     const { id } = req.params;
 
     const sql = `
       UPDATE apis
-      SET name = ?, type = ?, api_key = ?, base_url = ?, pricing_model = ?, unit_cost = ?, model = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, type = ?, api_key = ?, base_url = ?, pricing_model = ?, unit_cost = ?, model = ?, project_id = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND user_id = ?
     `;
 
-    await dbRun(sql, [name, type, api_key, base_url, pricing_model, unit_cost, model || null, id, req.userId]);
+    await dbRun(sql, [name, type, api_key, base_url, pricing_model, unit_cost, model || null, project_id || null, id, req.userId]);
     res.json({ id, name, type, updated_at: new Date() });
   } catch (err) {
     res.status(500).json({ error: err.message });

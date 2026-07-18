@@ -56,6 +56,48 @@
   gap: 0.5rem;
 }
 
+.inline-field {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.inline-field select {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-field input {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-field button {
+  flex-shrink: 0;
+  padding: 0 0.9rem;
+}
+
+.mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: -0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-lighter);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.mini-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0;
+}
+
+.mini-list-row .actions button {
+  padding: 0.2rem;
+}
+
 .actions {
   display: flex;
   gap: 0.25rem;

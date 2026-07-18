@@ -29,32 +29,37 @@ router.get('/summary', async (req, res) => {
       start_date && end_date ? [req.userId, start_date, end_date] : start_date ? [req.userId, start_date] : end_date ? [req.userId, end_date] : [req.userId]
     );
 
-    // Por API
-    const byApi = await dbAll(
-      `SELECT a.name, a.type, COALESCE(SUM(c.amount), 0) as total
-       FROM apis a
-       LEFT JOIN costs c ON a.id = c.api_id AND c.user_id = ?
-       WHERE a.user_id = ?
-       GROUP BY a.id, a.name, a.type
-       ORDER BY total DESC`,
-      [req.userId, req.userId]
-    );
-
-    // Por projeto
+    // Por projeto (com empresa/cliente, se atribuídos)
     const byProject = await dbAll(
-      `SELECT p.id, p.name, p.client_name, COALESCE(SUM(c.amount), 0) as total
+      `SELECT p.id, p.name, p.client_name, p.company_id, p.client_id, COALESCE(SUM(c.amount), 0) as total
        FROM projects p
        LEFT JOIN costs c ON p.id = c.project_id
        WHERE p.user_id = ?
-       GROUP BY p.id, p.name, p.client_name
+       GROUP BY p.id, p.name, p.client_name, p.company_id, p.client_id
        ORDER BY total DESC`,
       [req.userId]
     );
 
+    // APIs dentro de cada projeto (para o card "Por projeto" expandir)
+    const projectApis = await dbAll(
+      `SELECT c.project_id, a.id as api_id, a.name as api_name, COALESCE(SUM(c.amount), 0) as total
+       FROM costs c
+       JOIN apis a ON a.id = c.api_id
+       WHERE c.user_id = ?
+       GROUP BY c.project_id, a.id, a.name
+       ORDER BY total DESC`,
+      [req.userId]
+    );
+
+    const companies = await dbAll('SELECT id, name FROM companies WHERE user_id = ? ORDER BY name', [req.userId]);
+    const clients = await dbAll('SELECT id, name, company_id FROM clients WHERE user_id = ? ORDER BY name', [req.userId]);
+
     res.json({
       total: totalRow.total || 0,
-      byApi: byApi || [],
       byProject: byProject || [],
+      projectApis: projectApis || [],
+      companies: companies || [],
+      clients: clients || [],
       period: { start_date, end_date }
     });
   } catch (err) {

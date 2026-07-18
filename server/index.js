@@ -11,6 +11,8 @@ import { dbReady } from './db.js';
 import authRoutes from './routes/auth.js';
 import apiRoutes from './routes/apis.js';
 import projectRoutes from './routes/projects.js';
+import companyRoutes from './routes/companies.js';
+import clientRoutes from './routes/clients.js';
 import costRoutes from './routes/costs.js';
 import dashboardRoutes from './routes/dashboard.js';
 import webhookRoutes from './routes/webhooks.js';
@@ -50,6 +52,8 @@ app.use('/api/integrations', integrationRoutes);
 // Rotas da API (todas requerem autenticação)
 app.use('/api/apis', apiRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/clients', clientRoutes);
 app.use('/api/costs', costRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/webhooks', webhookRoutes);

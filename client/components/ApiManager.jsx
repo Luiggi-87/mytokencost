@@ -38,6 +38,7 @@ const PRICING_PROVIDER_MAP = {
 
 export default function ApiManager({ token, onSave }) {
   const [apis, setApis] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [models, setModels] = useState({});
   const [form, setForm] = useState({
     name: '',
@@ -46,12 +47,14 @@ export default function ApiManager({ token, onSave }) {
     base_url: '',
     pricing_model: 'por_token',
     unit_cost: 0,
-    model: ''
+    model: '',
+    project_id: ''
   });
   const [editing, setEditing] = useState(null);
 
   useEffect(() => {
     fetchApis();
+    fetchProjects();
   }, []);
 
   const fetchApis = async () => {
@@ -60,6 +63,17 @@ export default function ApiManager({ token, onSave }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       setApis(await res.json());
+    } catch (error) {
+      console.error('Erro:', error);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch('/api/projects', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(await res.json());
     } catch (error) {
       console.error('Erro:', error);
     }
@@ -136,7 +150,16 @@ export default function ApiManager({ token, onSave }) {
   };
 
   const handleEdit = (api) => {
-    setForm(api);
+    setForm({
+      name: api.name || '',
+      type: api.type || 'anthropic',
+      api_key: api.api_key || '',
+      base_url: api.base_url || '',
+      pricing_model: api.pricing_model || 'por_token',
+      unit_cost: api.unit_cost || 0,
+      model: api.model || '',
+      project_id: api.project_id || ''
+    });
     setEditing(api.id);
   };
 
@@ -148,10 +171,13 @@ export default function ApiManager({ token, onSave }) {
       base_url: '',
       pricing_model: 'por_token',
       unit_cost: 0,
-      model: ''
+      model: '',
+      project_id: ''
     });
     setEditing(null);
   };
+
+  const projectsById = new Map(projects.map((p) => [p.id, p]));
 
   return (
     <div className="manager">
@@ -222,6 +248,16 @@ export default function ApiManager({ token, onSave }) {
             onChange={(e) => setForm({ ...form, unit_cost: parseFloat(e.target.value) })}
           />
 
+          <select
+            value={form.project_id}
+            onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+          >
+            <option value="">Sem projeto</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+
           <div className="form-buttons">
             <button type="submit" className="btn-primary">
               {editing ? 'Atualizar' : 'Adicionar'}
@@ -246,6 +282,7 @@ export default function ApiManager({ token, onSave }) {
                 <th>Tipo</th>
                 <th>Modelo</th>
                 <th>Custo</th>
+                <th>Projeto</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -259,6 +296,7 @@ export default function ApiManager({ token, onSave }) {
                   <td>{api.type}</td>
                   <td>{api.model || api.pricing_model}</td>
                   <td>$ {api.unit_cost?.toFixed(5)}</td>
+                  <td>{projectsById.get(api.project_id)?.name || '-'}</td>
                   <td className="actions">
                     <button className="btn-edit" onClick={() => handleEdit(api)} aria-label="Editar"><IconEdit /></button>
                     <button className="btn-delete" onClick={() => handleDelete(api.id)} aria-label="Excluir"><IconTrash /></button>

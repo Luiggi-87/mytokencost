@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
 // POST novo projeto
 router.post('/', async (req, res) => {
   try {
-    const { name, client_name, description, monthly_rate } = req.body;
+    const { name, client_name, description, monthly_rate, company_id, client_id } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Nome do projeto é obrigatório' });
@@ -27,12 +27,12 @@ router.post('/', async (req, res) => {
 
     const id = uuidv4();
     const sql = `
-      INSERT INTO projects (id, user_id, name, client_name, description, monthly_rate)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO projects (id, user_id, name, client_name, description, monthly_rate, company_id, client_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    await dbRun(sql, [id, req.userId, name, client_name || null, description || null, monthly_rate || 0]);
-    res.status(201).json({ id, name, client_name, monthly_rate });
+    await dbRun(sql, [id, req.userId, name, client_name || null, description || null, monthly_rate || 0, company_id || null, client_id || null]);
+    res.status(201).json({ id, name, client_name, monthly_rate, company_id, client_id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -41,16 +41,16 @@ router.post('/', async (req, res) => {
 // PUT atualizar projeto
 router.put('/:id', async (req, res) => {
   try {
-    const { name, client_name, description, monthly_rate } = req.body;
+    const { name, client_name, description, monthly_rate, company_id, client_id } = req.body;
     const { id } = req.params;
 
     const sql = `
       UPDATE projects
-      SET name = ?, client_name = ?, description = ?, monthly_rate = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, client_name = ?, description = ?, monthly_rate = ?, company_id = ?, client_id = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND user_id = ?
     `;
 
-    await dbRun(sql, [name, client_name, description, monthly_rate, id, req.userId]);
+    await dbRun(sql, [name, client_name, description, monthly_rate, company_id || null, client_id || null, id, req.userId]);
     res.json({ id, name, updated_at: new Date() });
   } catch (err) {
     res.status(500).json({ error: err.message });

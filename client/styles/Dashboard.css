@@ -87,6 +87,74 @@
   padding: 1rem;
 }
 
+.tree {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tree-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.tree-node:first-child > .tree-row {
+  border-top: none;
+}
+
+.tree-row.clickable {
+  cursor: pointer;
+}
+
+.tree-row.clickable:hover {
+  color: var(--primary);
+}
+
+.tree-child {
+  padding-left: 1.1rem;
+  border-top: none;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.tree-label em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.tree-path {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.tree-value {
+  font-weight: 600;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+.chevron {
+  display: inline-block;
+  margin-right: 0.4rem;
+  transition: transform 0.15s;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.chevron.open {
+  transform: rotate(90deg);
+}
+
+.tree-label.muted {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .btn-refresh {
   align-self: flex-end;
   background: var(--primary);
