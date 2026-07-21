@@ -180,4 +180,45 @@
   .amount {
     font-size: 2rem;
   }
+
+  .list {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid {
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .amount {
+    font-size: 1.75rem;
+  }
+
+  .list-item {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .project-client {
+    font-size: 0.7rem;
+  }
+
+  .tree-child {
+    padding-left: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tree-value {
+    font-size: 0.85rem;
+  }
 }
