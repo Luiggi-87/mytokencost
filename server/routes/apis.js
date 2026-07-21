@@ -100,6 +100,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    await dbRun('DELETE FROM costs WHERE api_id = ? AND user_id = ?', [id, req.userId]);
     await dbRun('DELETE FROM apis WHERE id = ? AND user_id = ?', [id, req.userId]);
     res.json({ message: 'API removida' });
   } catch (err) {
