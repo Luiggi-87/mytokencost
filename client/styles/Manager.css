@@ -139,6 +139,50 @@
   }
 }
 
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  tr {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    background: var(--bg-lighter);
+    padding: 0.75rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--border);
+  }
+
+  td {
+    display: block;
+    border: none;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+  }
+
+  td strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .actions {
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+  }
+}
+
 @media (max-width: 480px) {
   .manager-form,
   .manager-list,
@@ -169,16 +213,22 @@
     width: 100%;
   }
 
-  table {
-    font-size: 0.8rem;
+  textarea {
+    min-height: 80px;
   }
 
-  th, td {
+  .mini-list {
     padding: 0.5rem;
+    gap: 0.25rem;
+  }
+
+  .mini-list-row {
+    padding: 0.4rem;
+    gap: 0.4rem;
   }
 
   .actions {
-    gap: 0.1rem;
+    gap: 0.2rem;
   }
 
   .actions button {
@@ -208,6 +258,19 @@
 
   .inline-add-form button {
     width: 100%;
+  }
+
+  tr {
+    grid-template-columns: 1fr;
+  }
+
+  td {
+    flex-wrap: wrap;
+  }
+
+  td:last-child {
+    justify-content: flex-end;
+    flex-direction: row;
   }
 }
 
