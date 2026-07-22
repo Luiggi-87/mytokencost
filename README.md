@@ -1,6 +1,6 @@
 # 💰 MyTokenCost
 
-Sistema multi-tenant para rastrear, calcular e gerenciar custos de múltiplas APIs de IA (Anthropic, OpenAI, Google, Groq, Mistral, Cohere, Perplexity, Together AI, Firecrawl, etc.), com dashboard em tempo real, alertas, webhooks, relatórios e cobrança automática via Stripe. Todos os valores são exibidos e cobrados em **USD**.
+Sistema multi-tenant para rastrear, calcular e gerenciar custos de múltiplas APIs de IA (Anthropic, OpenAI, Google, Groq, Mistral, Cohere, Perplexity, Together AI, Firecrawl, etc.), com dashboard em tempo real, alertas, webhooks e relatórios. Todos os valores são exibidos e cobrados em **USD**.
 
 **Produção:**
 - Frontend: https://mtc.247ia.com.br (Netlify)
